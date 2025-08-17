@@ -49,12 +49,16 @@ public class VideoScreen extends Screen {
 
     @Override
     public void close() {
-        if (videoPlayer == VideoScreenClient.buffered) {
-            videoPlayer.seekTo(0);
-            videoPlayer.pause();
-        } else {
-            videoPlayer.stop();
-        }
+        videoPlayer.stop();
         super.close();
     }
+
+    @Override
+    protected void applyBlur() {}
+
+    @Override
+    protected void renderDarkening(DrawContext context, int x, int y, int width, int height) {}
+
+    @Override
+    public boolean shouldPause() {return false;}
 }

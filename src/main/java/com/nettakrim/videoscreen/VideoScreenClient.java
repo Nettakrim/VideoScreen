@@ -23,9 +23,6 @@ public class VideoScreenClient implements ClientModInitializer {
 	public static final String MOD_ID = "videoscreen";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	public static String bufferedURL;
-	public static VideoPlayer buffered;
-
 	@Override
 	public void onInitializeClient() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new VideoScreenReloader());
@@ -47,26 +44,6 @@ public class VideoScreenClient implements ClientModInitializer {
 					)
 					.build();
 			root.addChild(playNode);
-
-			LiteralCommandNode<FabricClientCommandSource> bufferNode = ClientCommandManager
-					.literal("videoplayer:buffer")
-					.then(
-							ClientCommandManager.literal("load")
-									.then(
-											ClientCommandManager.argument("url", StringArgumentType.greedyString())
-													.executes(this::bufferVideo)
-									)
-					)
-					.then(
-							ClientCommandManager.literal("play")
-									.executes(this::playBufferedVideo)
-					)
-					.then(
-							ClientCommandManager.literal("clear")
-									.executes(this::clearBufferedVideo)
-					)
-					.build();
-			root.addChild(bufferNode);
 		});
 	}
 
@@ -80,49 +57,8 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public int playVideo(CommandContext<FabricClientCommandSource> context) {
 		String s = StringArgumentType.getString(context, "url");
-		VideoPlayer videoPlayer;
-		if (s.equals(bufferedURL)) {
-			videoPlayer = buffered;
-		} else {
-			videoPlayer = createVideoPlayer(getURI(s));
-		}
+		VideoPlayer videoPlayer = createVideoPlayer(getURI(s));
 		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
-		return 1;
-	}
-
-	public int playBufferedVideo(CommandContext<FabricClientCommandSource> context) {
-		VideoPlayer videoPlayer = buffered;
-		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
-		return 1;
-	}
-
-	public int clearBufferedVideo(CommandContext<FabricClientCommandSource> context) {
-		if (buffered == null) {
-			return 0;
-		}
-
-		bufferedURL = null;
-		buffered.stop();
-		buffered = null;
-		return 1;
-	}
-
-	public int bufferVideo(CommandContext<FabricClientCommandSource> context) {
-		String s = StringArgumentType.getString(context, "url");
-		if (s.equals(bufferedURL)) {
-			return 1;
-		}
-
-		if (buffered != null) {
-			buffered.stop();
-			buffered = null;
-		}
-
-		URI uri = getURI(s);
-
-		buffered = createVideoPlayer(uri);
-		bufferedURL = s;
-
 		return 1;
 	}
 

@@ -37,11 +37,19 @@ public class VideoScreenClient implements ClientModInitializer {
 	}
 
 	public static int play(VideoParameters parameters) {
-		if (parameters.source == null) {
+		if (parameters == null || parameters.source == null) {
 			say("no_sources");
 			return 0;
 		}
-		VideoPlayer videoPlayer = createVideoPlayer(getURI(parameters.source));
+
+		URI uri = getURI(parameters.source);
+
+		if (uri.getScheme() == null) {
+			say("invalid_source");
+			return 0;
+		}
+
+		VideoPlayer videoPlayer = createVideoPlayer(uri);
 		videoPlayer.setVolume(parameters.volume);
 		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
 		return 1;

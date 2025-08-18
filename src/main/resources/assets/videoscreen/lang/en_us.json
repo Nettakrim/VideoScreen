@@ -1,4 +1,5 @@
 {
   "videoscreen.say": "[Video Screen] ",
-  "videoscreen.no_sources": "No Video Sources"
+  "videoscreen.no_sources": "No Video Sources",
+  "videoscreen.invalid_source": "Invalid Video Source"
 }

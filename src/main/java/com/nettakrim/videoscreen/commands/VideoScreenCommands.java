@@ -1,10 +1,11 @@
-package com.nettakrim.videoscreen;
+package com.nettakrim.videoscreen.commands;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.nettakrim.videoscreen.*;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -79,10 +80,10 @@ public class VideoScreenCommands {
 
     public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, BiConsumer<CommandContext<FabricClientCommandSource>, VideoParameters> store, LiteralCommandNode<FabricClientCommandSource> fork) {
         return node.executes((context -> {
-            store.accept(context, ((PlaySourceInterface)context.getSource()).videoscreen$getEditingParameters());
+            store.accept(context, ((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters());
             return this.playVideo(context);
         })).fork(fork, context -> {
-            store.accept(context,((PlaySourceInterface)context.getSource()).videoscreen$getEditingParameters());
+            store.accept(context,((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters());
             return Collections.singleton(context.getSource());
         });
     }
@@ -96,6 +97,6 @@ public class VideoScreenCommands {
     }
 
     public int playVideo(CommandContext<FabricClientCommandSource> context) {
-        return VideoScreenClient.play(((PlaySourceInterface)context.getSource()).videoscreen$getFinalParameters());
+        return VideoScreenClient.play(((ClientCommandSourceInterface)context.getSource()).videoscreen$getFinalParameters());
     }
 }

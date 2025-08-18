@@ -1,5 +1,6 @@
 package com.nettakrim.videoscreen;
 
+import com.nettakrim.videoscreen.commands.VideoScreenCommands;
 import net.fabricmc.api.ClientModInitializer;
 
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;

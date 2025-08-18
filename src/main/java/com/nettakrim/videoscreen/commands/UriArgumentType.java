@@ -1,4 +1,4 @@
-package com.nettakrim.videoscreen;
+package com.nettakrim.videoscreen.commands;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;

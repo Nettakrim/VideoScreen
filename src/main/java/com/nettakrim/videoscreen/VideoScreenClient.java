@@ -12,16 +12,20 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.watermedia.api.network.NetworkAPI;
 import org.watermedia.api.player.videolan.VideoPlayer;
 
 import java.net.URI;
+import java.util.HashMap;
 
 public class VideoScreenClient implements ClientModInitializer {
 	public static final String MOD_ID = "videoscreen";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	public static HashMap<Identifier, VideoResource> localVideos = new HashMap<>();
 
 	@Override
 	public void onInitializeClient() {

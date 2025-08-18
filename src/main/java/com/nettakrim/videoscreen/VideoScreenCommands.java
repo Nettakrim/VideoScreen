@@ -1,6 +1,7 @@
 package com.nettakrim.videoscreen;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -32,17 +33,17 @@ public class VideoScreenCommands {
                     .then(
                             ClientCommandManager.literal("url")
                                     .then(addParameter(
-                                            ClientCommandManager.argument("url", IdentifierArgumentType.identifier()),
-                                            (context, videoParameters) -> videoParameters.setSource(context.getArgument("url", Identifier.class).getPath()),
+                                            ClientCommandManager.argument("url", new UriArgumentType()),
+                                            (context, videoParameters) -> videoParameters.setSource(StringArgumentType.getString(context, "url")),
                                             playNode)
                                     )
                     )
                     .then(
                             ClientCommandManager.literal("file")
                                     .then(addParameter(
-                                            ClientCommandManager.argument("file", IdentifierArgumentType.identifier()),
+                                            ClientCommandManager.argument("file", new UriArgumentType()),
                                             (context, videoParameters) -> {
-                                                String file = context.getArgument("file", Identifier.class).getPath();
+                                                String file = StringArgumentType.getString(context, "file");
                                                 if (new File(file).exists()) {
                                                     videoParameters.setSource(file);
                                                 }

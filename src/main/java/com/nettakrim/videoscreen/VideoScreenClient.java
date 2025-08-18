@@ -57,7 +57,7 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static URI getURI(@NotNull String s) {
 		//return NetworkAPI.patch(NetworkAPI.parseURI(s)).uri;
-		return NetworkAPI.patch(URI.create(s)).uri;
+		return NetworkAPI.patch(URI.create(s.replace('\\', '/'))).uri;
 	}
 
 	public static void say(String key, Object... args) {

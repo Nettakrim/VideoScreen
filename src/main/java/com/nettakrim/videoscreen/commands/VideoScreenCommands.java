@@ -1,6 +1,6 @@
 package com.nettakrim.videoscreen.commands;
 
-import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -69,8 +69,9 @@ public class VideoScreenCommands {
                     .then(
                             ClientCommandManager.literal("volume")
                                     .then(addParameter(
-                                            ClientCommandManager.argument("volume", FloatArgumentType.floatArg(0, 1)),
-                                            (context, videoParameters) -> videoParameters.setVolume(FloatArgumentType.getFloat(context, "volume")),
+                                            ClientCommandManager.argument("volume", IntegerArgumentType.integer(0, 1024))
+                                                    .suggests((context, builder) -> builder.suggest(100).buildFuture()),
+                                            (context, videoParameters) -> videoParameters.setVolume(IntegerArgumentType.getInteger(context, "volume")),
                                             playNode)
                                     )
                     )

@@ -4,11 +4,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class VideoParameters {
     public @Nullable String source;
-    public float volume;
+    public int volume;
 
     public VideoParameters() {
         source = null;
-        volume = 0.5f;
+        volume = 100;
     }
 
     public void setSource(String value) {
@@ -17,7 +17,7 @@ public class VideoParameters {
         }
     }
 
-    public void setVolume(float value) {
+    public void setVolume(int value) {
         volume = value;
     }
 }

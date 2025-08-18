@@ -42,6 +42,7 @@ public class VideoScreenClient implements ClientModInitializer {
 			return 0;
 		}
 		VideoPlayer videoPlayer = createVideoPlayer(getURI(parameters.source));
+		videoPlayer.setVolume(parameters.volume);
 		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
 		return 1;
 	}

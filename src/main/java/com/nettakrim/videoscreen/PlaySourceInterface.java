@@ -1,5 +1,7 @@
 package com.nettakrim.videoscreen;
 
 public interface PlaySourceInterface {
-    VideoParameters videoscreen$getParameters();
+    VideoParameters videoscreen$getEditingParameters();
+
+    VideoParameters videoscreen$getFinalParameters();
 }

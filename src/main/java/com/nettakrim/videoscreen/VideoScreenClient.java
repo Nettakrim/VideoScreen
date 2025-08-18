@@ -5,6 +5,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -16,8 +20,11 @@ import java.net.URI;
 import java.util.HashMap;
 
 public class VideoScreenClient implements ClientModInitializer {
-	public static final String MOD_ID = "videoscreen";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final String MODID = "videoscreen";
+	public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
+
+	public static final TextColor textColor = TextColor.fromRgb(0xAAAAAA);
+	public static final TextColor nameTextColor = TextColor.fromRgb(0x3A77E0);
 
 	public static HashMap<Identifier, String> localVideos = new HashMap<>();
 
@@ -28,14 +35,14 @@ public class VideoScreenClient implements ClientModInitializer {
 		new VideoScreenCommands().register();
 	}
 
-	public static void play(VideoParameters parameters) {
-		String source = parameters.getSource();
-		if (source == null) {
-			VideoScreenClient.LOGGER.info("no source");
-			return;
+	public static int play(VideoParameters parameters) {
+		if (parameters.source == null) {
+			say("no_sources");
+			return 0;
 		}
-		VideoPlayer videoPlayer = createVideoPlayer(getURI(source));
+		VideoPlayer videoPlayer = createVideoPlayer(getURI(parameters.source));
 		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
+		return 1;
 	}
 
 	public static void setScreen(VideoPlayer videoPlayer) {
@@ -51,5 +58,22 @@ public class VideoScreenClient implements ClientModInitializer {
 	public static URI getURI(@NotNull String s) {
 		//return NetworkAPI.patch(NetworkAPI.parseURI(s)).uri;
 		return NetworkAPI.patch(URI.create(s)).uri;
+	}
+
+	public static void say(String key, Object... args) {
+		sayStyled(translate(key, args).setStyle(Style.EMPTY.withColor(textColor)));
+	}
+
+	public static void sayStyled(MutableText text) {
+		sayRaw(Text.translatable(MODID + ".say").setStyle(Style.EMPTY.withColor(nameTextColor)).append(text.setStyle(Style.EMPTY.withColor(textColor))));
+	}
+
+	public static void sayRaw(MutableText text) {
+		if (MinecraftClient.getInstance().player == null) return;
+		MinecraftClient.getInstance().player.sendMessage(text, false);
+	}
+
+	public static MutableText translate(String key, Object... args) {
+		return Text.translatable(MODID+"."+key, args);
 	}
 }

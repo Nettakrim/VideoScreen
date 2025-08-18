@@ -81,6 +81,6 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
 
     @Override
     public Identifier getFabricId() {
-        return Identifier.of(VideoScreenClient.MOD_ID, resourceLocation);
+        return Identifier.of(VideoScreenClient.MODID, resourceLocation);
     }
 }

@@ -11,10 +11,17 @@ public class ClientCommandSourceMixin implements PlaySourceInterface {
     @Unique VideoParameters parameters;
 
     @Override
-    public VideoParameters videoscreen$getParameters() {
+    public VideoParameters videoscreen$getEditingParameters() {
         if (parameters == null) {
             parameters = new VideoParameters();
         }
         return parameters;
+    }
+
+    @Override
+    public VideoParameters videoscreen$getFinalParameters() {
+        VideoParameters temp = parameters;
+        parameters = null;
+        return temp;
     }
 }

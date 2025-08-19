@@ -29,6 +29,9 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static HashMap<Identifier, String> localVideos = new HashMap<>();
 
+	public static VideoPlayer currentVideoPlayer;
+	public static VideoParameters videoParameters;
+
 	@Override
 	public void onInitializeClient() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new VideoScreenReloader());
@@ -49,14 +52,21 @@ public class VideoScreenClient implements ClientModInitializer {
 			return 0;
 		}
 
-		VideoPlayer videoPlayer = createVideoPlayer(uri);
-		videoPlayer.setVolume(parameters.volume);
-		MinecraftClient.getInstance().send(() -> setScreen(videoPlayer));
-		return 1;
-	}
+		if (currentVideoPlayer != null) {
+			currentVideoPlayer.stop();
+		}
 
-	public static void setScreen(VideoPlayer videoPlayer) {
-		MinecraftClient.getInstance().setScreen(new VideoScreen(videoPlayer));
+		videoParameters = parameters;
+
+		currentVideoPlayer = createVideoPlayer(uri);
+		currentVideoPlayer.setVolume(parameters.volume);
+
+		if (parameters.stopInput) {
+			MinecraftClient.getInstance().send(() -> MinecraftClient.getInstance().setScreen(new VideoScreen()));
+		}
+
+		currentVideoPlayer.play();
+		return 1;
 	}
 
 	public static VideoPlayer createVideoPlayer(URI uri) {
@@ -67,6 +77,13 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static URI getURI(@NotNull String s) {
 		return NetworkAPI.patch(NetworkAPI.parseURI(s.replace('\\', '/'))).uri;
+	}
+
+	public static void clearVideo() {
+		if (currentVideoPlayer != null) {
+			currentVideoPlayer.stop();
+			currentVideoPlayer = null;
+		}
 	}
 
 	public static void say(String key, Object... args) {

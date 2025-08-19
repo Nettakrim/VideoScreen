@@ -5,10 +5,14 @@ import org.jetbrains.annotations.Nullable;
 public class VideoParameters {
     public @Nullable String source;
     public int volume;
+    public boolean stopInput;
+    public float transparency;
 
     public VideoParameters() {
         source = null;
         volume = 100;
+        stopInput = true;
+        transparency = 1f;
     }
 
     public void setSource(String value) {
@@ -19,5 +23,13 @@ public class VideoParameters {
 
     public void setVolume(int value) {
         volume = value;
+    }
+
+    public void setStopInput(boolean value) {
+        stopInput = value;
+    }
+
+    public void setTransparency(float value) {
+        transparency = value;
     }
 }

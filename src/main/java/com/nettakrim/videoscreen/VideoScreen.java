@@ -8,33 +8,32 @@ import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import org.watermedia.api.player.videolan.VideoPlayer;
 
 
 public class VideoScreen extends Screen {
-    private final VideoPlayer videoPlayer;
-
-    public VideoScreen(VideoPlayer videoPlayer) {
+    public VideoScreen() {
         super(Text.empty());
-        this.videoPlayer = videoPlayer;
-        videoPlayer.play();
+        VideoScreenClient.currentVideoPlayer.play();
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
+        render(context, width, height);
+    }
 
-        if (!videoPlayer.isPlaying()) {
+    public static void render(DrawContext context, int width, int height) {
+        if (!VideoScreenClient.currentVideoPlayer.isPlaying() || VideoScreenClient.videoParameters.transparency == 0) {
             return;
         }
 
-        int texture = videoPlayer.preRender();
+        int texture = VideoScreenClient.currentVideoPlayer.preRender();
 
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
         RenderSystem.setShaderTexture(0, texture);
 
         RenderSystem.enableBlend();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, VideoScreenClient.videoParameters.transparency);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
@@ -45,11 +44,13 @@ public class VideoScreen extends Screen {
         bufferBuilder.vertex(matrix4f, (float)width, (float)0, (float)0).texture(1, 0);
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         RenderSystem.disableBlend();
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override
     public void close() {
-        videoPlayer.stop();
+        VideoScreenClient.clearVideo();
         super.close();
     }
 

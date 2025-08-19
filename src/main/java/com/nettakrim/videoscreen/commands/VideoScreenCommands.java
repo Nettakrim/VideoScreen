@@ -1,5 +1,7 @@
 package com.nettakrim.videoscreen.commands;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -75,6 +77,24 @@ public class VideoScreenCommands {
                                             playNode)
                                     )
                     )
+                    .then(
+                            ClientCommandManager.literal("stopinput")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("stop input", BoolArgumentType.bool())
+                                                    .suggests((context, builder) -> builder.suggest("true").buildFuture()),
+                                            (context, videoParameters) -> videoParameters.setStopInput(BoolArgumentType.getBool(context, "stop input")),
+                                            playNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("opacity")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
+                                                    .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
+                                            (context, videoParameters) -> videoParameters.setTransparency(FloatArgumentType.getFloat(context, "opacity")),
+                                            playNode)
+                                    )
+                    )
             );
         });
     }
@@ -93,6 +113,8 @@ public class VideoScreenCommands {
         if (MinecraftClient.getInstance().currentScreen instanceof VideoScreen videoScreen) {
             videoScreen.close();
             return 1;
+        } else {
+            VideoScreenClient.clearVideo();
         }
         return 0;
     }

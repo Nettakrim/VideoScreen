@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ClientCommandSourceInterface {
     @NotNull
-    Parameters.Builder videoscreen$getEditingParameters();
+    Parameters.Builder videoscreen$getEditingParameters(boolean isSettings);
 
     @NotNull
     Parameters.Builder videoscreen$getFinalParameters();

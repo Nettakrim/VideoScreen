@@ -44,7 +44,6 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
         Set<Path> zipped = new HashSet<>();
 
         for (Map.Entry<Identifier, Resource> entry : prepared.entrySet()) {
-            VideoScreenClient.LOGGER.info("loading video {} from {}", entry.getKey(), entry.getValue().getPackId());
             if (entry.getValue().getPackId().endsWith(".zip")) {
                 try {
                     String id = entry.getKey().toString().replace(':','_').replace('/','_');

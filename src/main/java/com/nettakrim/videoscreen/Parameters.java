@@ -16,28 +16,30 @@ public class Parameters {
     }
 
     public static class Builder {
-        private boolean hasSource;
         private @Nullable String fileSource;
         private @Nullable String urlSource;
         private @Nullable Integer volume;
         private @Nullable Boolean stopInput;
         private @Nullable Float opacity;
 
-        public Builder() {
-            hasSource = false;
+        private final boolean isSettings;
+
+        public Builder(boolean isSettings) {
             fileSource = null;
             urlSource = null;
             volume = null;
             stopInput = null;
             opacity = null;
+
+            this.isSettings = isSettings;
         }
 
         public Parameters build() {
             return new Parameters(volume, stopInput, opacity);
         }
 
-        public boolean hasSource() {
-            return hasSource;
+        public boolean isSettings() {
+            return isSettings;
         }
 
         public @Nullable String getSource() {
@@ -48,17 +50,13 @@ public class Parameters {
         }
 
         public void addFileSource(@Nullable String value) {
-            hasSource = true;
-            VideoScreenClient.LOGGER.info(value);
             if (value == null || fileSource != null || !new File(value).exists()) {
-                VideoScreenClient.LOGGER.info("invalid");
                 return;
             }
             fileSource = value;
         }
 
         public void addUrlSource(@Nullable String value) {
-            hasSource = true;
             if (value == null || urlSource != null) {
                 return;
             }

@@ -12,6 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.watermedia.api.network.NetworkAPI;
@@ -27,7 +28,7 @@ public class VideoScreenClient implements ClientModInitializer {
 	public static final TextColor textColor = TextColor.fromRgb(0xAAAAAA);
 	public static final TextColor nameTextColor = TextColor.fromRgb(0x3A77E0);
 
-	public static HashMap<Identifier, String> localVideos = new HashMap<>();
+	public static final HashMap<Identifier, String> localVideos = new HashMap<>();
 
 	public static VideoPlayer currentVideoPlayer;
 	public static Parameters parameters;
@@ -40,10 +41,15 @@ public class VideoScreenClient implements ClientModInitializer {
 	}
 
 	public static int play(@NotNull Parameters.Builder builder) {
-		if (!builder.hasSource()) {
-			if (parameters == null) {
+		if (builder.isSettings()) {
+			if (currentVideoPlayer == null) {
 				say("no_video");
 				return 0;
+			}
+
+			// if current video is currently not playing, accept fallbacks as new sources
+			if (!currentVideoPlayer.isPlaying()) {
+				playSource(builder.getSource());
 			}
 
 			builder.updateParameters(parameters);
@@ -51,28 +57,30 @@ public class VideoScreenClient implements ClientModInitializer {
 			return 1;
 		}
 
-		clearVideo();
-
-		String source = builder.getSource();
-
-		if (source == null) {
+		if (!playSource(builder.getSource())) {
+			clearVideo();
 			say("invalid_source");
 			return 0;
 		}
 
-        URI uri = getURI(source);
-        if (uri.getScheme() == null) {
-            say("invalid_source");
-            return 0;
-        }
-
-        currentVideoPlayer = createVideoPlayer(uri);
-
 		VideoScreenClient.parameters = builder.build();
 		applySettings();
-
-		currentVideoPlayer.play();
 		return 1;
+	}
+
+	private static boolean playSource(@Nullable String source) {
+		if (source == null) {
+			return false;
+		}
+
+		URI uri = getURI(source);
+		if (uri.getScheme() == null) {
+			return false;
+		}
+
+		clearVideo();
+		currentVideoPlayer = createVideoPlayer(uri);
+		return true;
 	}
 
 	private static void applySettings() {
@@ -85,7 +93,7 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static VideoPlayer createVideoPlayer(URI uri) {
 		VideoPlayer videoPlayer = new VideoPlayer(MinecraftClient.getInstance());
-		videoPlayer.startPaused(uri);
+		videoPlayer.start(uri);
 		return videoPlayer;
 	}
 

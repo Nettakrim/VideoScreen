@@ -16,9 +16,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.util.Identifier;
 
-import java.io.File;
 import java.util.Collections;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class VideoScreenCommands {
     public void register() {
@@ -35,19 +34,14 @@ public class VideoScreenCommands {
             LiteralArgumentBuilder<FabricClientCommandSource> urlSource = ClientCommandManager.literal("url")
                     .then(addParameter(
                             ClientCommandManager.argument("url", new UriArgumentType()),
-                            (context, parameterBuilder) -> parameterBuilder.addUrlSource(StringArgumentType.getString(context, "url")),
+                            context -> getBuilder(context).addUrlSource(StringArgumentType.getString(context, "url")),
                             settingsNode)
                     );
 
             LiteralArgumentBuilder<FabricClientCommandSource> fileSource = ClientCommandManager.literal("file")
                     .then(addParameter(
                             ClientCommandManager.argument("file", new UriArgumentType()),
-                            (context, parameterBuilder) -> {
-                                String file = StringArgumentType.getString(context, "file");
-                                if (new File(file).exists()) {
-                                    parameterBuilder.addFileSource(file);
-                                }
-                            },
+                            context -> getBuilder(context).addFileSource(StringArgumentType.getString(context, "file")),
                             settingsNode)
                     );
 
@@ -60,7 +54,7 @@ public class VideoScreenCommands {
                                         }
                                         return builder.buildFuture();
                                     }),
-                            (context, parameterBuilder) -> parameterBuilder.addFileSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
+                            context -> getBuilder(context).addFileSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
                             settingsNode)
                     );
 
@@ -83,7 +77,7 @@ public class VideoScreenCommands {
                                     .then(addParameter(
                                             ClientCommandManager.argument("volume", IntegerArgumentType.integer(0, 1024))
                                                     .suggests((context, builder) -> builder.suggest(100).buildFuture()),
-                                            (context, parameterBuilder) -> parameterBuilder.setVolume(IntegerArgumentType.getInteger(context, "volume")),
+                                            context -> getBuilder(context).setVolume(IntegerArgumentType.getInteger(context, "volume")),
                                             settingsNode)
                                     )
                     )
@@ -91,8 +85,8 @@ public class VideoScreenCommands {
                             ClientCommandManager.literal("stopinput")
                                     .then(addParameter(
                                             ClientCommandManager.argument("stop input", BoolArgumentType.bool())
-                                                    .suggests((context, builder) -> builder.suggest("true").buildFuture()),
-                                            (context, parameterBuilder) -> parameterBuilder.setStopInput(BoolArgumentType.getBool(context, "stop input")),
+                                                    .suggests((context, builder) -> builder.suggest("true").suggest("false").buildFuture()),
+                                            context -> getBuilder(context).setStopInput(BoolArgumentType.getBool(context, "stop input")),
                                             settingsNode)
                                     )
                     )
@@ -101,7 +95,7 @@ public class VideoScreenCommands {
                                     .then(addParameter(
                                             ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
                                                     .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
-                                            (context, parameterBuilder) -> parameterBuilder.setOpacity(FloatArgumentType.getFloat(context, "opacity")),
+                                            context -> getBuilder(context).setOpacity(FloatArgumentType.getFloat(context, "opacity")),
                                             settingsNode)
                                     )
                     )
@@ -109,14 +103,18 @@ public class VideoScreenCommands {
         });
     }
 
-    public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, BiConsumer<CommandContext<FabricClientCommandSource>, Parameters.Builder> store, LiteralCommandNode<FabricClientCommandSource> fork) {
+    public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, Consumer<CommandContext<FabricClientCommandSource>> store, LiteralCommandNode<FabricClientCommandSource> fork) {
         return node.executes((context -> {
-            store.accept(context, ((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters());
+            store.accept(context);
             return this.playVideo(context);
         })).fork(fork, context -> {
-            store.accept(context,((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters());
+            store.accept(context);
             return Collections.singleton(context.getSource());
         });
+    }
+
+    private static Parameters.Builder getBuilder(CommandContext<FabricClientCommandSource> context) {
+        return ((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters(context.getInput().startsWith("videoplayer:settings"));
     }
 
     public int stopVideo(CommandContext<FabricClientCommandSource> context) {

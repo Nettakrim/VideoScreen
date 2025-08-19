@@ -41,20 +41,25 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static int play(Parameters.Builder builder) {
 		if (builder == null) {
-			say("no_sources");
+			say("no_settings");
 			return 0;
 		}
 
-		if (builder.source == null) {
-			updateSettings(builder);
+		if (!builder.hasSource()) {
+			builder.updateParameters(parameters);
 			applySettings();
 			return 1;
 		}
 
 		clearVideo();
 
-        URI uri = getURI(builder.source);
+		String source = builder.getSource();
+		if (source == null) {
+			say("invalid_source");
+			return 0;
+		}
 
+        URI uri = getURI(source);
         if (uri.getScheme() == null) {
             say("invalid_source");
             return 0;
@@ -67,18 +72,6 @@ public class VideoScreenClient implements ClientModInitializer {
 
 		currentVideoPlayer.play();
 		return 1;
-	}
-
-	private static void updateSettings(Parameters.Builder update) {
-		if (update.volume != null) {
-			parameters.volume = update.volume;
-		}
-		if (update.stopInput != null) {
-			parameters.stopInput = update.stopInput;
-		}
-		if (update.opacity != null) {
-			parameters.opacity = update.opacity;
-		}
 	}
 
 	private static void applySettings() {

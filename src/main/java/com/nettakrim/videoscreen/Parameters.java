@@ -2,6 +2,8 @@ package com.nettakrim.videoscreen;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+
 public class Parameters {
     public int volume;
     public boolean stopInput;
@@ -14,13 +16,17 @@ public class Parameters {
     }
 
     public static class Builder {
-        public @Nullable String source;
-        public @Nullable Integer volume;
-        public @Nullable Boolean stopInput;
-        public @Nullable Float opacity;
+        private boolean hasSource;
+        private @Nullable String fileSource;
+        private @Nullable String urlSource;
+        private @Nullable Integer volume;
+        private @Nullable Boolean stopInput;
+        private @Nullable Float opacity;
 
         public Builder() {
-            source = null;
+            hasSource = false;
+            fileSource = null;
+            urlSource = null;
             volume = null;
             stopInput = null;
             opacity = null;
@@ -30,8 +36,31 @@ public class Parameters {
             return new Parameters(volume, stopInput, opacity);
         }
 
-        public void setSource(@Nullable String value) {
-            source = value == null ? "" : value;
+        public boolean hasSource() {
+            return hasSource;
+        }
+
+        public @Nullable String getSource() {
+            if (fileSource != null) {
+                return fileSource;
+            }
+            return urlSource;
+        }
+
+        public void addFileSource(@Nullable String value) {
+            hasSource = true;
+            if (value == null || fileSource != null || !new File(value).exists()) {
+                return;
+            }
+            fileSource = value;
+        }
+
+        public void addUrlSource(@Nullable String value) {
+            hasSource = true;
+            if (value == null || urlSource != null) {
+                return;
+            }
+            urlSource = value;
         }
 
         public void setVolume(int value) {
@@ -44,6 +73,18 @@ public class Parameters {
 
         public void setOpacity(float value) {
             opacity = value;
+        }
+
+        public void updateParameters(Parameters parameters) {
+            if (volume != null) {
+                parameters.volume = volume;
+            }
+            if (stopInput != null) {
+                parameters.stopInput = stopInput;
+            }
+            if (opacity != null) {
+                parameters.opacity = opacity;
+            }
         }
     }
 }

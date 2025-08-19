@@ -52,13 +52,20 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
                     file.mkdirs();
                     file.createNewFile();
                     Files.copy(entry.getValue().getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    VideoScreenClient.localVideos.put(entry.getKey(), "water://local/config/"+resourceLocation+"/"+cacheLocation+"/"+id);
+                    VideoScreenClient.localVideos.put(entry.getKey(), cache.resolve(id).toString());
                     zipped.add(file.toPath());
                 } catch (IOException e) {
                     VideoScreenClient.LOGGER.info("error loading zipped video {}:\n{} {}", entry.getKey(), e, e.getStackTrace());
                 }
             } else {
-                VideoScreenClient.localVideos.put(entry.getKey(), "water://local/resourcepacks" + entry.getValue().getPackId().substring(4) + "/assets/" + entry.getKey().getNamespace() + "/" + entry.getKey().getPath());
+                VideoScreenClient.localVideos.put(entry.getKey(), FabricLoader.getInstance().getGameDir()
+                        .resolve("resourcepacks")
+                        .resolve(entry.getValue().getPackId().substring(4))
+                        .resolve("assets")
+                        .resolve(entry.getKey().getNamespace())
+                        .resolve(entry.getKey().getPath())
+                        .toString()
+                );
             }
         }
 

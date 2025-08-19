@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.nettakrim.videoscreen.*;
@@ -22,17 +23,62 @@ import java.util.function.BiConsumer;
 public class VideoScreenCommands {
     public void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager
-                    .literal("videoplayer:stop")
-                    .executes(this::stopVideo)
+            dispatcher.register(
+                    ClientCommandManager.literal("videoplayer:stop")
+                            .executes(this::stopVideo)
             );
 
-            LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(ClientCommandManager
-                    .literal("videoplayer:settings")
-                    .executes(this::playVideo)
+            LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(
+                    ClientCommandManager.literal("videoplayer:settings")
+                            .executes(this::playVideo)
+            );
+
+            LiteralArgumentBuilder<FabricClientCommandSource> urlSource = ClientCommandManager.literal("url")
+                    .then(addParameter(
+                            ClientCommandManager.argument("url", new UriArgumentType()),
+                            (context, parameterBuilder) -> parameterBuilder.addUrlSource(StringArgumentType.getString(context, "url")),
+                            settingsNode)
+                    );
+
+            LiteralArgumentBuilder<FabricClientCommandSource> fileSource = ClientCommandManager.literal("file")
+                    .then(addParameter(
+                            ClientCommandManager.argument("file", new UriArgumentType()),
+                            (context, parameterBuilder) -> {
+                                String file = StringArgumentType.getString(context, "file");
+                                if (new File(file).exists()) {
+                                    parameterBuilder.addFileSource(file);
+                                }
+                            },
+                            settingsNode)
+                    );
+
+            LiteralArgumentBuilder<FabricClientCommandSource> resourceSource = ClientCommandManager.literal("resource")
+                    .then(addParameter(
+                            ClientCommandManager.argument("resource", IdentifierArgumentType.identifier())
+                                    .suggests((context, builder) -> {
+                                        for (Identifier resource : VideoScreenClient.localVideos.keySet()) {
+                                            builder.suggest(resource.toString());
+                                        }
+                                        return builder.buildFuture();
+                                    }),
+                            (context, parameterBuilder) -> parameterBuilder.addFileSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
+                            settingsNode)
+                    );
+
+            dispatcher.register(
+                    ClientCommandManager.literal("videoplayer:play")
+                            .then(urlSource)
+                            .then(fileSource)
+                            .then(resourceSource)
             );
 
             dispatcher.register(ClientCommandManager.literal("videoplayer:settings")
+                    .then(
+                            ClientCommandManager.literal("fallback")
+                                    .then(urlSource)
+                                    .then(fileSource)
+                                    .then(resourceSource)
+                    )
                     .then(
                             ClientCommandManager.literal("volume")
                                     .then(addParameter(
@@ -57,45 +103,6 @@ public class VideoScreenCommands {
                                             ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
                                                     .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
                                             (context, parameterBuilder) -> parameterBuilder.setOpacity(FloatArgumentType.getFloat(context, "opacity")),
-                                            settingsNode)
-                                    )
-                    )
-            );
-
-            dispatcher.register(ClientCommandManager
-                    .literal("videoplayer:play")
-                    .then(
-                            ClientCommandManager.literal("url")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("url", new UriArgumentType()),
-                                            (context, parameterBuilder) -> parameterBuilder.setSource(StringArgumentType.getString(context, "url")),
-                                            settingsNode)
-                                    )
-                    )
-                    .then(
-                            ClientCommandManager.literal("file")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("file", new UriArgumentType()),
-                                            (context, parameterBuilder) -> {
-                                                String file = StringArgumentType.getString(context, "file");
-                                                if (new File(file).exists()) {
-                                                    parameterBuilder.setSource(file);
-                                                }
-                                            },
-                                            settingsNode)
-                                    )
-                    )
-                    .then(
-                            ClientCommandManager.literal("resource")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("resource", IdentifierArgumentType.identifier())
-                                                    .suggests((context, builder) -> {
-                                                        for (Identifier resource : VideoScreenClient.localVideos.keySet()) {
-                                                            builder.suggest(resource.toString());
-                                                        }
-                                                        return builder.buildFuture();
-                                                    }),
-                                            (context, parameterBuilder) -> parameterBuilder.setSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
                                             settingsNode)
                                     )
                     )

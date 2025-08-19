@@ -60,7 +60,7 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
             } else {
                 VideoScreenClient.localVideos.put(entry.getKey(), FabricLoader.getInstance().getGameDir()
                         .resolve("resourcepacks")
-                        .resolve(entry.getValue().getPackId().substring(4))
+                        .resolve(entry.getValue().getPackId().substring(5))
                         .resolve("assets")
                         .resolve(entry.getKey().getNamespace())
                         .resolve(entry.getKey().getPath())

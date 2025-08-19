@@ -39,13 +39,13 @@ public class VideoScreenClient implements ClientModInitializer {
 		new VideoScreenCommands().register();
 	}
 
-	public static int play(Parameters.Builder builder) {
-		if (builder == null) {
-			say("no_settings");
-			return 0;
-		}
-
+	public static int play(@NotNull Parameters.Builder builder) {
 		if (!builder.hasSource()) {
+			if (parameters == null) {
+				say("no_video");
+				return 0;
+			}
+
 			builder.updateParameters(parameters);
 			applySettings();
 			return 1;
@@ -54,6 +54,7 @@ public class VideoScreenClient implements ClientModInitializer {
 		clearVideo();
 
 		String source = builder.getSource();
+
 		if (source == null) {
 			say("invalid_source");
 			return 0;

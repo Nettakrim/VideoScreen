@@ -30,7 +30,6 @@ public class VideoScreenCommands {
 
             LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(
                     ClientCommandManager.literal("videoplayer:settings")
-                            .executes(this::playVideo)
             );
 
             LiteralArgumentBuilder<FabricClientCommandSource> urlSource = ClientCommandManager.literal("url")

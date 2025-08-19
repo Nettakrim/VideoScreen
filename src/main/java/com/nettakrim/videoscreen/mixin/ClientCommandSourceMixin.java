@@ -3,16 +3,18 @@ package com.nettakrim.videoscreen.mixin;
 import com.nettakrim.videoscreen.Parameters;
 import com.nettakrim.videoscreen.commands.ClientCommandSourceInterface;
 import net.minecraft.client.network.ClientCommandSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClientCommandSource.class)
 public class ClientCommandSourceMixin implements ClientCommandSourceInterface {
-    @Unique
+    @Unique @Nullable
     Parameters.Builder parameters;
 
     @Override
-    public Parameters.Builder videoscreen$getEditingParameters() {
+    public Parameters.@NotNull Builder videoscreen$getEditingParameters() {
         if (parameters == null) {
             parameters = new Parameters.Builder();
         }
@@ -20,8 +22,8 @@ public class ClientCommandSourceMixin implements ClientCommandSourceInterface {
     }
 
     @Override
-    public Parameters.Builder videoscreen$getFinalParameters() {
-        Parameters.Builder temp = parameters;
+    public Parameters.@NotNull Builder videoscreen$getFinalParameters() {
+        Parameters.Builder temp = videoscreen$getEditingParameters();
         parameters = null;
         return temp;
     }

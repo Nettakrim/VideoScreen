@@ -49,7 +49,9 @@ public class Parameters {
 
         public void addFileSource(@Nullable String value) {
             hasSource = true;
+            VideoScreenClient.LOGGER.info(value);
             if (value == null || fileSource != null || !new File(value).exists()) {
+                VideoScreenClient.LOGGER.info("invalid");
                 return;
             }
             fileSource = value;

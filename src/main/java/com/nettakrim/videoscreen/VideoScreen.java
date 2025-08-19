@@ -23,7 +23,7 @@ public class VideoScreen extends Screen {
     }
 
     public static void render(DrawContext context, int width, int height) {
-        if (!VideoScreenClient.currentVideoPlayer.isPlaying() || VideoScreenClient.videoParameters.transparency == 0) {
+        if (!VideoScreenClient.currentVideoPlayer.isPlaying() || VideoScreenClient.parameters.opacity == 0) {
             return;
         }
 
@@ -33,7 +33,7 @@ public class VideoScreen extends Screen {
         RenderSystem.setShaderTexture(0, texture);
 
         RenderSystem.enableBlend();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, VideoScreenClient.videoParameters.transparency);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, VideoScreenClient.parameters.opacity);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();

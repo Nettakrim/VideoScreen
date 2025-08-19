@@ -30,7 +30,7 @@ public class VideoScreenClient implements ClientModInitializer {
 	public static HashMap<Identifier, String> localVideos = new HashMap<>();
 
 	public static VideoPlayer currentVideoPlayer;
-	public static VideoParameters videoParameters;
+	public static Parameters parameters;
 
 	@Override
 	public void onInitializeClient() {
@@ -39,34 +39,54 @@ public class VideoScreenClient implements ClientModInitializer {
 		new VideoScreenCommands().register();
 	}
 
-	public static int play(VideoParameters parameters) {
-		if (parameters == null || parameters.source == null) {
+	public static int play(Parameters.Builder builder) {
+		if (builder == null) {
 			say("no_sources");
 			return 0;
 		}
 
-		URI uri = getURI(parameters.source);
-
-		if (uri.getScheme() == null) {
-			say("invalid_source");
-			return 0;
+		if (builder.source == null) {
+			updateSettings(builder);
+			applySettings();
+			return 1;
 		}
 
-		if (currentVideoPlayer != null) {
-			currentVideoPlayer.stop();
-		}
+		clearVideo();
 
-		videoParameters = parameters;
+        URI uri = getURI(builder.source);
 
-		currentVideoPlayer = createVideoPlayer(uri);
-		currentVideoPlayer.setVolume(parameters.volume);
+        if (uri.getScheme() == null) {
+            say("invalid_source");
+            return 0;
+        }
 
-		if (parameters.stopInput) {
-			MinecraftClient.getInstance().send(() -> MinecraftClient.getInstance().setScreen(new VideoScreen()));
-		}
+        currentVideoPlayer = createVideoPlayer(uri);
+
+		VideoScreenClient.parameters = builder.build();
+		applySettings();
 
 		currentVideoPlayer.play();
 		return 1;
+	}
+
+	private static void updateSettings(Parameters.Builder update) {
+		if (update.volume != null) {
+			parameters.volume = update.volume;
+		}
+		if (update.stopInput != null) {
+			parameters.stopInput = update.stopInput;
+		}
+		if (update.opacity != null) {
+			parameters.opacity = update.opacity;
+		}
+	}
+
+	private static void applySettings() {
+		currentVideoPlayer.setVolume(parameters.volume);
+
+		if (parameters.stopInput != MinecraftClient.getInstance().currentScreen instanceof VideoScreen) {
+			MinecraftClient.getInstance().send(() -> MinecraftClient.getInstance().setScreen(parameters.stopInput ? new VideoScreen() : null));
+		}
 	}
 
 	public static VideoPlayer createVideoPlayer(URI uri) {

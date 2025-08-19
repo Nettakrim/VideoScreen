@@ -27,31 +27,62 @@ public class VideoScreenCommands {
                     .executes(this::stopVideo)
             );
 
-            LiteralCommandNode<FabricClientCommandSource> playNode = dispatcher.register(ClientCommandManager
-                    .literal("videoplayer:play")
+            LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(ClientCommandManager
+                    .literal("videoplayer:settings")
                     .executes(this::playVideo)
             );
 
-            dispatcher.register(ClientCommandManager.literal("videoplayer:play")
+            dispatcher.register(ClientCommandManager.literal("videoplayer:settings")
+                    .then(
+                            ClientCommandManager.literal("volume")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("volume", IntegerArgumentType.integer(0, 1024))
+                                                    .suggests((context, builder) -> builder.suggest(100).buildFuture()),
+                                            (context, parameterBuilder) -> parameterBuilder.setVolume(IntegerArgumentType.getInteger(context, "volume")),
+                                            settingsNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("stopinput")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("stop input", BoolArgumentType.bool())
+                                                    .suggests((context, builder) -> builder.suggest("true").buildFuture()),
+                                            (context, parameterBuilder) -> parameterBuilder.setStopInput(BoolArgumentType.getBool(context, "stop input")),
+                                            settingsNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("opacity")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
+                                                    .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
+                                            (context, parameterBuilder) -> parameterBuilder.setOpacity(FloatArgumentType.getFloat(context, "opacity")),
+                                            settingsNode)
+                                    )
+                    )
+            );
+
+            dispatcher.register(ClientCommandManager
+                    .literal("videoplayer:play")
                     .then(
                             ClientCommandManager.literal("url")
                                     .then(addParameter(
                                             ClientCommandManager.argument("url", new UriArgumentType()),
-                                            (context, videoParameters) -> videoParameters.setSource(StringArgumentType.getString(context, "url")),
-                                            playNode)
+                                            (context, parameterBuilder) -> parameterBuilder.setSource(StringArgumentType.getString(context, "url")),
+                                            settingsNode)
                                     )
                     )
                     .then(
                             ClientCommandManager.literal("file")
                                     .then(addParameter(
                                             ClientCommandManager.argument("file", new UriArgumentType()),
-                                            (context, videoParameters) -> {
+                                            (context, parameterBuilder) -> {
                                                 String file = StringArgumentType.getString(context, "file");
                                                 if (new File(file).exists()) {
-                                                    videoParameters.setSource(file);
+                                                    parameterBuilder.setSource(file);
                                                 }
                                             },
-                                            playNode)
+                                            settingsNode)
                                     )
                     )
                     .then(
@@ -64,42 +95,15 @@ public class VideoScreenCommands {
                                                         }
                                                         return builder.buildFuture();
                                                     }),
-                                            (context, videoParameters) -> videoParameters.setSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
-                                            playNode)
-                                    )
-                    )
-                    .then(
-                            ClientCommandManager.literal("volume")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("volume", IntegerArgumentType.integer(0, 1024))
-                                                    .suggests((context, builder) -> builder.suggest(100).buildFuture()),
-                                            (context, videoParameters) -> videoParameters.setVolume(IntegerArgumentType.getInteger(context, "volume")),
-                                            playNode)
-                                    )
-                    )
-                    .then(
-                            ClientCommandManager.literal("stopinput")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("stop input", BoolArgumentType.bool())
-                                                    .suggests((context, builder) -> builder.suggest("true").buildFuture()),
-                                            (context, videoParameters) -> videoParameters.setStopInput(BoolArgumentType.getBool(context, "stop input")),
-                                            playNode)
-                                    )
-                    )
-                    .then(
-                            ClientCommandManager.literal("opacity")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
-                                                    .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
-                                            (context, videoParameters) -> videoParameters.setTransparency(FloatArgumentType.getFloat(context, "opacity")),
-                                            playNode)
+                                            (context, parameterBuilder) -> parameterBuilder.setSource(VideoScreenClient.localVideos.getOrDefault(context.getArgument("resource", Identifier.class), null)),
+                                            settingsNode)
                                     )
                     )
             );
         });
     }
 
-    public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, BiConsumer<CommandContext<FabricClientCommandSource>, VideoParameters> store, LiteralCommandNode<FabricClientCommandSource> fork) {
+    public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, BiConsumer<CommandContext<FabricClientCommandSource>, Parameters.Builder> store, LiteralCommandNode<FabricClientCommandSource> fork) {
         return node.executes((context -> {
             store.accept(context, ((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters());
             return this.playVideo(context);

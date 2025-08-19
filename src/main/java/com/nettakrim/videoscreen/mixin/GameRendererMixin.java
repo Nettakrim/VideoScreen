@@ -20,7 +20,7 @@ public class GameRendererMixin {
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;getOverlay()Lnet/minecraft/client/gui/screen/Overlay;", ordinal = 0), method = "render")
     void renderVideo(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci, @Local DrawContext context) {
-        if (VideoScreenClient.videoParameters != null && !VideoScreenClient.videoParameters.stopInput) {
+        if (VideoScreenClient.currentVideoPlayer != null && !VideoScreenClient.parameters.stopInput) {
             VideoScreen.render(context, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
         }
     }

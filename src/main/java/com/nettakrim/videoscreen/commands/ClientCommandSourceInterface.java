@@ -1,9 +1,9 @@
 package com.nettakrim.videoscreen.commands;
 
-import com.nettakrim.videoscreen.VideoParameters;
+import com.nettakrim.videoscreen.Parameters;
 
 public interface ClientCommandSourceInterface {
-    VideoParameters videoscreen$getEditingParameters();
+    Parameters.Builder videoscreen$getEditingParameters();
 
-    VideoParameters videoscreen$getFinalParameters();
+    Parameters.Builder videoscreen$getFinalParameters();
 }

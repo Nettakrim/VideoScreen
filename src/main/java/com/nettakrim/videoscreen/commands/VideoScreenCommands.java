@@ -106,7 +106,7 @@ public class VideoScreenCommands {
     public ArgumentBuilder<FabricClientCommandSource, ?> addParameter(ArgumentBuilder<FabricClientCommandSource, ?> node, Consumer<CommandContext<FabricClientCommandSource>> store, LiteralCommandNode<FabricClientCommandSource> fork) {
         return node.executes((context -> {
             store.accept(context);
-            return this.playVideo(context);
+            return this.updateVideo(context);
         })).fork(fork, context -> {
             store.accept(context);
             return Collections.singleton(context.getSource());
@@ -114,7 +114,7 @@ public class VideoScreenCommands {
     }
 
     private static Parameters.Builder getBuilder(CommandContext<FabricClientCommandSource> context) {
-        return ((ClientCommandSourceInterface)context.getSource()).videoscreen$getEditingParameters(context.getInput().startsWith("videoplayer:settings"));
+        return ((ClientCommandSourceInterface)context.getSource()).videoscreen$getParameters();
     }
 
     public int stopVideo(CommandContext<FabricClientCommandSource> context) {
@@ -127,7 +127,15 @@ public class VideoScreenCommands {
         return 0;
     }
 
-    public int playVideo(CommandContext<FabricClientCommandSource> context) {
-        return VideoScreenClient.play(((ClientCommandSourceInterface)context.getSource()).videoscreen$getFinalParameters());
+    public int updateVideo(CommandContext<FabricClientCommandSource> context) {
+        ClientCommandSourceInterface sourceInterface = ((ClientCommandSourceInterface)context.getSource());
+        Parameters.Builder builder = sourceInterface.videoscreen$getParameters();
+        sourceInterface.videoscreen$clearParameters();
+
+        if (context.getInput().startsWith("videoplayer:settings")) {
+            return VideoScreenClient.updateSettings(builder);
+        } else {
+            return VideoScreenClient.play(builder);
+        }
     }
 }

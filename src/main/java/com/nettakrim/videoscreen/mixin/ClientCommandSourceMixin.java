@@ -14,17 +14,15 @@ public class ClientCommandSourceMixin implements ClientCommandSourceInterface {
     Parameters.Builder parameters;
 
     @Override
-    public Parameters.@NotNull Builder videoscreen$getEditingParameters(boolean isSettings) {
+    public Parameters.@NotNull Builder videoscreen$getParameters() {
         if (parameters == null) {
-            parameters = new Parameters.Builder(isSettings);
+            parameters = new Parameters.Builder();
         }
         return parameters;
     }
 
     @Override
-    public Parameters.@NotNull Builder videoscreen$getFinalParameters() {
-        Parameters.Builder temp = videoscreen$getEditingParameters(false);
+    public void videoscreen$clearParameters() {
         parameters = null;
-        return temp;
     }
 }

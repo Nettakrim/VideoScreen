@@ -22,24 +22,16 @@ public class Parameters {
         private @Nullable Boolean stopInput;
         private @Nullable Float opacity;
 
-        private final boolean isSettings;
-
-        public Builder(boolean isSettings) {
+        public Builder() {
             fileSource = null;
             urlSource = null;
             volume = null;
             stopInput = null;
             opacity = null;
-
-            this.isSettings = isSettings;
         }
 
         public Parameters build() {
             return new Parameters(volume, stopInput, opacity);
-        }
-
-        public boolean isSettings() {
-            return isSettings;
         }
 
         public @Nullable String getSource() {

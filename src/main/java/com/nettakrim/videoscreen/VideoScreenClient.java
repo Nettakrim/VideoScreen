@@ -40,23 +40,23 @@ public class VideoScreenClient implements ClientModInitializer {
 		new VideoScreenCommands().register();
 	}
 
-	public static int play(@NotNull Parameters.Builder builder) {
-		if (builder.isSettings()) {
-			if (currentVideoPlayer == null) {
-				say("no_video");
-				return 0;
-			}
-
-			// if current video is currently not playing, accept fallbacks as new sources
-			if (!currentVideoPlayer.isPlaying()) {
-				playSource(builder.getSource());
-			}
-
-			builder.updateParameters(parameters);
-			applySettings();
-			return 1;
+	public static int updateSettings(@NotNull Parameters.Builder builder) {
+		if (currentVideoPlayer == null) {
+			say("no_video");
+			return 0;
 		}
 
+		// if current video is currently not playing, accept fallbacks as new sources
+		if (!currentVideoPlayer.isPlaying()) {
+			playSource(builder.getSource());
+		}
+
+		builder.updateParameters(parameters);
+		applySettings();
+		return 1;
+	}
+
+	public static int play(@NotNull Parameters.Builder builder) {
 		if (!playSource(builder.getSource())) {
 			clearVideo();
 			say("invalid_source");
@@ -73,7 +73,7 @@ public class VideoScreenClient implements ClientModInitializer {
 			return false;
 		}
 
-		URI uri = getURI(source);
+		URI uri = NetworkAPI.patch(NetworkAPI.parseURI(source.replace('\\', '/'))).uri;
 		if (uri.getScheme() == null) {
 			return false;
 		}
@@ -91,14 +91,10 @@ public class VideoScreenClient implements ClientModInitializer {
 		}
 	}
 
-	public static VideoPlayer createVideoPlayer(URI uri) {
+	private static VideoPlayer createVideoPlayer(URI uri) {
 		VideoPlayer videoPlayer = new VideoPlayer(MinecraftClient.getInstance());
 		videoPlayer.start(uri);
 		return videoPlayer;
-	}
-
-	public static URI getURI(@NotNull String s) {
-		return NetworkAPI.patch(NetworkAPI.parseURI(s.replace('\\', '/'))).uri;
 	}
 
 	public static void clearVideo() {

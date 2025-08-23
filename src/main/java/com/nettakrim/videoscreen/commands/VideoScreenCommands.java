@@ -7,12 +7,12 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.nettakrim.videoscreen.*;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.util.Identifier;
 
@@ -24,7 +24,12 @@ public class VideoScreenCommands {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(
                     ClientCommandManager.literal("videoplayer:stop")
-                            .executes(this::stopVideo)
+                            .executes(this::stopMainVideo)
+                            .then(
+                                    ClientCommandManager.argument("priority", IntegerArgumentType.integer())
+                                            .suggests(prioritySuggestions)
+                                            .executes(this::stopVideo)
+                            )
             );
 
             LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(
@@ -73,6 +78,15 @@ public class VideoScreenCommands {
                                     .then(resourceSource)
                     )
                     .then(
+                            ClientCommandManager.literal("priority")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("priority", IntegerArgumentType.integer())
+                                                    .suggests(prioritySuggestions),
+                                            context -> getBuilder(context).setPriority(IntegerArgumentType.getInteger(context, "priority")),
+                                            settingsNode)
+                                    )
+                    )
+                    .then(
                             ClientCommandManager.literal("volume")
                                     .then(addParameter(
                                             ClientCommandManager.argument("volume", IntegerArgumentType.integer(0, 1024))
@@ -113,23 +127,21 @@ public class VideoScreenCommands {
         });
     }
 
-    private static Parameters.Builder getBuilder(CommandContext<FabricClientCommandSource> context) {
+    private static VideoParameters.Builder getBuilder(CommandContext<FabricClientCommandSource> context) {
         return ((ClientCommandSourceInterface)context.getSource()).videoscreen$getParameters();
     }
 
+    public int stopMainVideo(CommandContext<FabricClientCommandSource> context) {
+        return VideoScreenClient.clearVideo(0) ? 1 : 0;
+    }
+
     public int stopVideo(CommandContext<FabricClientCommandSource> context) {
-        if (MinecraftClient.getInstance().currentScreen instanceof VideoScreen videoScreen) {
-            videoScreen.close();
-            return 1;
-        } else {
-            VideoScreenClient.clearVideo();
-        }
-        return 0;
+        return VideoScreenClient.clearVideo(IntegerArgumentType.getInteger(context, "priority")) ? 1 : 0;
     }
 
     public int updateVideo(CommandContext<FabricClientCommandSource> context) {
         ClientCommandSourceInterface sourceInterface = ((ClientCommandSourceInterface)context.getSource());
-        Parameters.Builder builder = sourceInterface.videoscreen$getParameters();
+        VideoParameters.Builder builder = sourceInterface.videoscreen$getParameters();
         sourceInterface.videoscreen$clearParameters();
 
         if (context.getInput().startsWith("videoplayer:settings")) {
@@ -138,4 +150,15 @@ public class VideoScreenCommands {
             return VideoScreenClient.play(builder);
         }
     }
+
+    private static final SuggestionProvider<FabricClientCommandSource> prioritySuggestions = (context, builder) -> {
+        if (VideoScreenClient.videos.isEmpty()) {
+            builder.suggest(0);
+        } else {
+            for (VideoParameters videoParameters : VideoScreenClient.videos) {
+                builder.suggest(videoParameters.priority);
+            }
+        }
+        return builder.buildFuture();
+    };
 }

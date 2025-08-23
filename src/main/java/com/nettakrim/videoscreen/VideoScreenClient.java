@@ -19,7 +19,7 @@ import org.watermedia.api.network.NetworkAPI;
 import org.watermedia.api.player.videolan.VideoPlayer;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.*;
 
 public class VideoScreenClient implements ClientModInitializer {
 	public static final String MODID = "videoscreen";
@@ -30,8 +30,7 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static final HashMap<Identifier, String> localVideos = new HashMap<>();
 
-	public static VideoPlayer currentVideoPlayer;
-	public static Parameters parameters;
+	public static final List<VideoParameters> videos = new ArrayList<>();
 
 	@Override
 	public void onInitializeClient() {
@@ -40,68 +39,99 @@ public class VideoScreenClient implements ClientModInitializer {
 		new VideoScreenCommands().register();
 	}
 
-	public static int updateSettings(@NotNull Parameters.Builder builder) {
-		if (currentVideoPlayer == null) {
+	private static SearchResult getVideo(int priority) {
+		if (videos.isEmpty()) {
+			return new SearchResult(0, false);
+		}
+
+		int low = 0;
+		int max = videos.size() - 1;
+		int high = max;
+		int mid = 0;
+
+		while (low <= high) {
+			mid = (low + high) / 2;
+			VideoParameters parameters = videos.get(mid);
+
+			if (parameters.priority == priority) {
+				return new SearchResult(mid, true);
+			} else if (parameters.priority > priority) {
+				high = mid - 1;
+			} else {
+				low = mid + 1;
+			}
+		}
+
+		return new SearchResult(high == max ? max+1 : mid, false);
+	}
+
+	public static int updateSettings(@NotNull VideoParameters.Builder builder) {
+		SearchResult result = getVideo(builder.getPriority());
+
+		if (!result.found) {
 			say("no_video");
 			return 0;
 		}
 
+		VideoParameters videoParameters = videos.get(result.index);
+
 		// if current video is currently not playing, accept fallbacks as new sources
-		if (!currentVideoPlayer.isPlaying()) {
-			playSource(builder.getSource());
+		if (!videoParameters.videoPlayer.isPlaying()) {
+			VideoPlayer videoPlayer = createVideoPlayer(builder.getSource());
+			videoParameters.videoPlayer.stop();
+			videoParameters.videoPlayer = videoPlayer;
 		}
 
-		builder.updateParameters(parameters);
-		applySettings();
+		builder.updateParameters(videoParameters);
+		videoParameters.applySettings();
 		return 1;
 	}
 
-	public static int play(@NotNull Parameters.Builder builder) {
-		if (!playSource(builder.getSource())) {
-			clearVideo();
+	public static int play(@NotNull VideoParameters.Builder builder) {
+		VideoPlayer videoPlayer = createVideoPlayer(builder.getSource());
+		SearchResult searchResult = getVideo(builder.getPriority());
+
+		if (videoPlayer == null) {
+			if (searchResult.found) {
+				videos.remove(searchResult.index).stop();
+			}
 			say("invalid_source");
 			return 0;
 		}
 
-		VideoScreenClient.parameters = builder.build();
-		applySettings();
+		if (searchResult.found) {
+			videos.remove(searchResult.index).stop();
+		}
+
+		VideoParameters videoParameters = builder.build();
+		videoParameters.videoPlayer = videoPlayer;
+		videoParameters.applySettings();
+		videos.add(searchResult.index, videoParameters);
 		return 1;
 	}
 
-	private static boolean playSource(@Nullable String source) {
+	private static @Nullable VideoPlayer createVideoPlayer(@Nullable String source) {
 		if (source == null) {
-			return false;
+			return null;
 		}
 
 		URI uri = NetworkAPI.patch(NetworkAPI.parseURI(source.replace('\\', '/'))).uri;
 		if (uri.getScheme() == null) {
-			return false;
+			return null;
 		}
 
-		clearVideo();
-		currentVideoPlayer = createVideoPlayer(uri);
-		return true;
-	}
-
-	private static void applySettings() {
-		currentVideoPlayer.setVolume(parameters.volume);
-
-		if (parameters.stopInput != MinecraftClient.getInstance().currentScreen instanceof VideoScreen) {
-			MinecraftClient.getInstance().send(() -> MinecraftClient.getInstance().setScreen(parameters.stopInput ? new VideoScreen() : null));
-		}
-	}
-
-	private static VideoPlayer createVideoPlayer(URI uri) {
 		VideoPlayer videoPlayer = new VideoPlayer(MinecraftClient.getInstance());
 		videoPlayer.start(uri);
 		return videoPlayer;
 	}
 
-	public static void clearVideo() {
-		if (currentVideoPlayer != null) {
-			currentVideoPlayer.stop();
-			currentVideoPlayer = null;
+	public static boolean clearVideo(int priority) {
+		SearchResult searchResult = getVideo(priority);
+		if (searchResult.found) {
+			videos.remove(searchResult.index).stop();
+			return true;
 		}
+		return false;
 	}
 
 	public static void say(String key, Object... args) {
@@ -119,5 +149,9 @@ public class VideoScreenClient implements ClientModInitializer {
 
 	public static MutableText translate(String key, Object... args) {
 		return Text.translatable(MODID+"."+key, args);
+	}
+
+	private record SearchResult(int index, boolean found) {
+
 	}
 }

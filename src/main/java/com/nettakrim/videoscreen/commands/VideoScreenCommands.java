@@ -1,6 +1,5 @@
 package com.nettakrim.videoscreen.commands;
 
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -29,6 +28,31 @@ public class VideoScreenCommands {
                                     ClientCommandManager.argument("priority", IntegerArgumentType.integer())
                                             .suggests(prioritySuggestions)
                                             .executes(this::stopVideo)
+                            )
+            );
+
+            dispatcher.register(
+                    ClientCommandManager.literal("videoplayer:ui")
+                            .then(
+                                    ClientCommandManager.literal("off")
+                                            .executes(this::disableUI)
+
+                            )
+                            .then(
+                                    ClientCommandManager.literal("normal")
+                                            .executes((context -> enableUI(false, false)))
+                                            .then(
+                                                    ClientCommandManager.literal("locked")
+                                                            .executes((context -> enableUI(false, true)))
+                                            )
+                            )
+                            .then(
+                                    ClientCommandManager.literal("minimal")
+                                            .executes((context -> enableUI(true, false)))
+                                            .then(
+                                                    ClientCommandManager.literal("locked")
+                                                            .executes((context -> enableUI(true, true)))
+                                            )
                             )
             );
 
@@ -96,15 +120,6 @@ public class VideoScreenCommands {
                                     )
                     )
                     .then(
-                            ClientCommandManager.literal("stopinput")
-                                    .then(addParameter(
-                                            ClientCommandManager.argument("stop input", BoolArgumentType.bool())
-                                                    .suggests((context, builder) -> builder.suggest("true").suggest("false").buildFuture()),
-                                            context -> getBuilder(context).setStopInput(BoolArgumentType.getBool(context, "stop input")),
-                                            settingsNode)
-                                    )
-                    )
-                    .then(
                             ClientCommandManager.literal("opacity")
                                     .then(addParameter(
                                             ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
@@ -149,6 +164,14 @@ public class VideoScreenCommands {
         } else {
             return VideoScreenClient.play(builder);
         }
+    }
+
+    public int disableUI(CommandContext<FabricClientCommandSource> context) {
+        return VideoScreen.disable() ? 1 : 0;
+    }
+
+    public int enableUI(boolean minimal, boolean locked) {
+        return VideoScreen.enable(minimal, locked) ? 1 : 0;
     }
 
     private static final SuggestionProvider<FabricClientCommandSource> prioritySuggestions = (context, builder) -> {

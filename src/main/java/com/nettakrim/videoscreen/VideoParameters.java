@@ -1,7 +1,6 @@
 package com.nettakrim.videoscreen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
@@ -17,13 +16,11 @@ public class VideoParameters {
     public final int priority;
 
     public int volume;
-    public boolean stopInput;
     public float opacity;
 
-    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Boolean stopInput, @Nullable Float opacity) {
+    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity) {
         this.priority = priority;
         this.volume = volume == null ? 100 : volume;
-        this.stopInput = stopInput == null || stopInput;
         this.opacity = opacity == null ? 1f : opacity;
     }
 
@@ -55,10 +52,6 @@ public class VideoParameters {
 
     public void applySettings() {
         videoPlayer.setVolume(volume);
-
-        if (stopInput != MinecraftClient.getInstance().currentScreen instanceof VideoScreen) {
-            MinecraftClient.getInstance().send(() -> MinecraftClient.getInstance().setScreen(stopInput ? new VideoScreen() : null));
-        }
     }
 
     public void stop() {
@@ -71,21 +64,18 @@ public class VideoParameters {
         private @Nullable String urlSource;
 
         private @Nullable Integer volume;
-        private @Nullable Boolean stopInput;
         private @Nullable Float opacity;
 
         public Builder() {
             priority = 0;
             fileSource = null;
             urlSource = null;
-
             volume = null;
-            stopInput = null;
             opacity = null;
         }
 
         public VideoParameters build() {
-            return new VideoParameters(priority, volume, stopInput, opacity);
+            return new VideoParameters(priority, volume, opacity);
         }
 
         public @Nullable String getSource() {
@@ -121,10 +111,6 @@ public class VideoParameters {
             volume = value;
         }
 
-        public void setStopInput(boolean value) {
-            stopInput = value;
-        }
-
         public void setOpacity(float value) {
             opacity = value;
         }
@@ -132,9 +118,6 @@ public class VideoParameters {
         public void updateParameters(VideoParameters videoParameters) {
             if (volume != null) {
                 videoParameters.volume = volume;
-            }
-            if (stopInput != null) {
-                videoParameters.stopInput = stopInput;
             }
             if (opacity != null) {
                 videoParameters.opacity = opacity;

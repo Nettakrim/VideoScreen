@@ -1,7 +1,9 @@
 package com.nettakrim.videoscreen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+//? if >=1.21.3 {
 import net.minecraft.client.gl.ShaderProgramKeys;
+//?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +33,12 @@ public class VideoParameters {
 
         int texture = videoPlayer.preRender();
 
+        //? if <1.21.3 {
+        /*assert GameRenderer.getPositionTexProgram() != null;
+        GameRenderer.getPositionTexProgram().bind();
+        *///?} else
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
+
         RenderSystem.setShaderTexture(0, texture);
 
         RenderSystem.enableBlend();

@@ -108,8 +108,10 @@ public class VideoScreen extends Screen {
         return !locked;
     }
 
+    //? if >=1.21.3 {
     @Override
     protected void applyBlur() {}
+    //?}
 
     @Override
     protected void renderDarkening(DrawContext context, int x, int y, int width, int height) {}

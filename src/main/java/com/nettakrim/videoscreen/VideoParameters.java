@@ -19,11 +19,15 @@ public class VideoParameters {
 
     public int volume;
     public float opacity;
+    public boolean looping;
+    public float speed;
 
-    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity) {
+    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed) {
         this.priority = priority;
         this.volume = volume == null ? 100 : volume;
         this.opacity = opacity == null ? 1f : opacity;
+        this.looping = looping != null && looping;
+        this.speed = speed == null ? 1f : speed;
     }
 
     public void render(DrawContext context, int width, int height) {
@@ -58,11 +62,13 @@ public class VideoParameters {
     }
 
     public boolean isFinished() {
-        return videoPlayer.isEnded();
+        return videoPlayer.isEnded() && !looping;
     }
 
     public void applySettings() {
         videoPlayer.setVolume(volume);
+        videoPlayer.setRepeatMode(looping);
+        videoPlayer.setSpeed(speed);
     }
 
     public void stop() {
@@ -70,23 +76,17 @@ public class VideoParameters {
     }
 
     public static class Builder {
-        private int priority;
-        private @Nullable String fileSource;
-        private @Nullable String urlSource;
+        private int priority = 0;
+        private @Nullable String fileSource = null;
+        private @Nullable String urlSource = null;
 
-        private @Nullable Integer volume;
-        private @Nullable Float opacity;
-
-        public Builder() {
-            priority = 0;
-            fileSource = null;
-            urlSource = null;
-            volume = null;
-            opacity = null;
-        }
+        private @Nullable Integer volume = null;
+        private @Nullable Float opacity = null;
+        private @Nullable Boolean looping = null;
+        private @Nullable Float speed = null;
 
         public VideoParameters build() {
-            return new VideoParameters(priority, volume, opacity);
+            return new VideoParameters(priority, volume, opacity, looping, speed);
         }
 
         public @Nullable String getSource() {
@@ -126,12 +126,26 @@ public class VideoParameters {
             opacity = value;
         }
 
+        public void setLooping(boolean value) {
+            looping = value;
+        }
+
+        public void setSpeed(float value) {
+            speed = value;
+        }
+
         public void updateParameters(VideoParameters videoParameters) {
             if (volume != null) {
                 videoParameters.volume = volume;
             }
             if (opacity != null) {
                 videoParameters.opacity = opacity;
+            }
+            if (looping != null) {
+                videoParameters.looping = looping;
+            }
+            if (speed != null) {
+                videoParameters.speed = speed;
             }
         }
     }

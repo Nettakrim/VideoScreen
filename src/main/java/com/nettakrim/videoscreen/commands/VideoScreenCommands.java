@@ -1,5 +1,6 @@
 package com.nettakrim.videoscreen.commands;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -123,8 +124,26 @@ public class VideoScreenCommands {
                             ClientCommandManager.literal("opacity")
                                     .then(addParameter(
                                             ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
-                                                    .suggests((context, builder) -> builder.suggest("1.0").buildFuture()),
+                                                    .suggests(floatSuggestions),
                                             context -> getBuilder(context).setOpacity(FloatArgumentType.getFloat(context, "opacity")),
+                                            settingsNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("looping")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("looping", BoolArgumentType.bool())
+                                                    .suggests(boolSuggestions),
+                                            context -> getBuilder(context).setLooping(BoolArgumentType.getBool(context, "looping")),
+                                            settingsNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("speed")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("speed", FloatArgumentType.floatArg(0.01f))
+                                                    .suggests(floatSuggestions),
+                                            context -> getBuilder(context).setSpeed(FloatArgumentType.getFloat(context, "speed")),
                                             settingsNode)
                                     )
                     )
@@ -184,4 +203,8 @@ public class VideoScreenCommands {
         }
         return builder.buildFuture();
     };
+
+    private static final SuggestionProvider<FabricClientCommandSource> floatSuggestions = (context, builder) -> builder.suggest("1.0").buildFuture();
+
+    private static final SuggestionProvider<FabricClientCommandSource> boolSuggestions = (context, builder) -> builder.suggest("true").suggest("false").buildFuture();
 }

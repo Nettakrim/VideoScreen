@@ -37,20 +37,29 @@ public class VideoParameters {
 
         float anchorX = 0.5f;
         float anchorY = 0.5f;
+        float scale = 1f;
+        boolean stretch = false;
 
         float x1 = 0f - anchorX;
         float x2 = 1f - anchorX;
         float y1 = 0f - anchorY;
         float y2 = 1f - anchorY;
 
-        float warp = (videoPlayer.width()/(float)videoPlayer.height()) / (width/(float)height);
-        if (warp <= 1f) {
-            x1 *= warp;
-            x2 *= warp;
-        } else {
-            y1 /= warp;
-            y2 /= warp;
+        if (!stretch) {
+            float warp = (videoPlayer.width() / (float) videoPlayer.height()) / (width / (float) height);
+            if (warp <= 1f) {
+                x1 *= warp;
+                x2 *= warp;
+            } else {
+                y1 /= warp;
+                y2 /= warp;
+            }
         }
+
+        x1 *= scale;
+        x2 *= scale;
+        y1 *= scale;
+        y2 *= scale;
 
         x1 += anchorX;
         x2 += anchorX;

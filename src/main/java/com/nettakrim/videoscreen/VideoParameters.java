@@ -35,6 +35,28 @@ public class VideoParameters {
             return;
         }
 
+        float anchorX = 0.5f;
+        float anchorY = 0.5f;
+
+        float x1 = 0f - anchorX;
+        float x2 = 1f - anchorX;
+        float y1 = 0f - anchorY;
+        float y2 = 1f - anchorY;
+
+        float warp = (videoPlayer.width()/(float)videoPlayer.height()) / (width/(float)height);
+        if (warp <= 1f) {
+            x1 *= warp;
+            x2 *= warp;
+        } else {
+            y1 /= warp;
+            y2 /= warp;
+        }
+
+        x1 += anchorX;
+        x2 += anchorX;
+        y1 += anchorY;
+        y2 += anchorY;
+
         int texture = videoPlayer.preRender();
 
         //? if <1.21.3 {
@@ -51,10 +73,10 @@ public class VideoParameters {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
         BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, (float)0, (float)0, (float)0).texture(0, 0);
-        bufferBuilder.vertex(matrix4f, (float)0, (float)height, (float)0).texture(0, 1);
-        bufferBuilder.vertex(matrix4f, (float)width, (float)height, (float)0).texture(1, 1);
-        bufferBuilder.vertex(matrix4f, (float)width, (float)0, (float)0).texture(1, 0);
+        bufferBuilder.vertex(matrix4f, x1*width, y1*height, 0).texture(0, 0);
+        bufferBuilder.vertex(matrix4f, x1*width, y2*height, 0).texture(0, 1);
+        bufferBuilder.vertex(matrix4f, x2*width, y2*height, 0).texture(1, 1);
+        bufferBuilder.vertex(matrix4f, x2*width, y1*height, 0).texture(1, 0);
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         RenderSystem.disableBlend();
 

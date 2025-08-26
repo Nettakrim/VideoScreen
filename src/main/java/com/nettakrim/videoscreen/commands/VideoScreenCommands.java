@@ -124,7 +124,7 @@ public class VideoScreenCommands {
                             ClientCommandManager.literal("opacity")
                                     .then(addParameter(
                                             ClientCommandManager.argument("opacity", FloatArgumentType.floatArg(0, 1))
-                                                    .suggests(floatSuggestions),
+                                                    .suggests(float1Suggestions),
                                             context -> getBuilder(context).setOpacity(FloatArgumentType.getFloat(context, "opacity")),
                                             settingsNode)
                                     )
@@ -142,9 +142,37 @@ public class VideoScreenCommands {
                             ClientCommandManager.literal("speed")
                                     .then(addParameter(
                                             ClientCommandManager.argument("speed", FloatArgumentType.floatArg(0.01f))
-                                                    .suggests(floatSuggestions),
+                                                    .suggests(float1Suggestions),
                                             context -> getBuilder(context).setSpeed(FloatArgumentType.getFloat(context, "speed")),
                                             settingsNode)
+                                    )
+                    )
+                    .then(
+                            ClientCommandManager.literal("alignment")
+                                    .then(
+                                            ClientCommandManager.argument("anchor_x", FloatArgumentType.floatArg(0, 1))
+                                                    .suggests(float05Suggestions)
+                                                    .then(
+                                                            ClientCommandManager.argument("anchor_y", FloatArgumentType.floatArg(0, 1))
+                                                                    .suggests(float05Suggestions)
+                                                                    .then(
+                                                                            ClientCommandManager.argument("scale", FloatArgumentType.floatArg())
+                                                                                    .suggests(float1Suggestions)
+                                                                                    .then(addParameter(
+                                                                                            ClientCommandManager.argument("stretch", BoolArgumentType.bool())
+                                                                                                    .suggests(boolSuggestions),
+                                                                                            context -> getBuilder(context).setAlignment(
+                                                                                                    new Alignment(
+                                                                                                            FloatArgumentType.getFloat(context, "anchor_x"),
+                                                                                                            FloatArgumentType.getFloat(context, "anchor_y"),
+                                                                                                            FloatArgumentType.getFloat(context, "scale"),
+                                                                                                            BoolArgumentType.getBool(context, "stretch")
+                                                                                                    )
+                                                                                            ),
+                                                                                            settingsNode)
+                                                                                    )
+                                                                    )
+                                                    )
                                     )
                     )
             );
@@ -204,7 +232,9 @@ public class VideoScreenCommands {
         return builder.buildFuture();
     };
 
-    private static final SuggestionProvider<FabricClientCommandSource> floatSuggestions = (context, builder) -> builder.suggest("1.0").buildFuture();
+    private static final SuggestionProvider<FabricClientCommandSource> float1Suggestions = (context, builder) -> builder.suggest("1.0").buildFuture();
+
+    private static final SuggestionProvider<FabricClientCommandSource> float05Suggestions = (context, builder) -> builder.suggest("0.5").buildFuture();
 
     private static final SuggestionProvider<FabricClientCommandSource> boolSuggestions = (context, builder) -> builder.suggest("true").suggest("false").buildFuture();
 }

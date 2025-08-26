@@ -6,8 +6,10 @@ import net.minecraft.client.gl.ShaderProgramKeys;
 //?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.watermedia.api.player.videolan.VideoPlayer;
 
@@ -17,17 +19,19 @@ public class VideoParameters {
     public VideoPlayer videoPlayer;
     public final int priority;
 
-    public int volume;
-    public float opacity;
-    public boolean looping;
-    public float speed;
+    protected int volume;
+    protected float opacity;
+    protected boolean looping;
+    protected float speed;
+    protected @NotNull Alignment alignment;
 
-    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed) {
+    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment) {
         this.priority = priority;
         this.volume = volume == null ? 100 : volume;
         this.opacity = opacity == null ? 1f : opacity;
         this.looping = looping != null && looping;
         this.speed = speed == null ? 1f : speed;
+        this.alignment = alignment == null ? new Alignment(0.5f, 0.5f, 1f, false) : alignment;
     }
 
     public void render(DrawContext context, int width, int height) {
@@ -35,36 +39,7 @@ public class VideoParameters {
             return;
         }
 
-        float anchorX = 0.5f;
-        float anchorY = 0.5f;
-        float scale = 1f;
-        boolean stretch = false;
-
-        float x1 = 0f - anchorX;
-        float x2 = 1f - anchorX;
-        float y1 = 0f - anchorY;
-        float y2 = 1f - anchorY;
-
-        if (!stretch) {
-            float warp = (videoPlayer.width() / (float) videoPlayer.height()) / (width / (float) height);
-            if (warp <= 1f) {
-                x1 *= warp;
-                x2 *= warp;
-            } else {
-                y1 /= warp;
-                y2 /= warp;
-            }
-        }
-
-        x1 *= scale;
-        x2 *= scale;
-        y1 *= scale;
-        y2 *= scale;
-
-        x1 += anchorX;
-        x2 += anchorX;
-        y1 += anchorY;
-        y2 += anchorY;
+        Vector4f uv = alignment.GetUV(videoPlayer.width() / (float) videoPlayer.height(), width / (float) height);
 
         int texture = videoPlayer.preRender();
 
@@ -82,10 +57,10 @@ public class VideoParameters {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
         BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, x1*width, y1*height, 0).texture(0, 0);
-        bufferBuilder.vertex(matrix4f, x1*width, y2*height, 0).texture(0, 1);
-        bufferBuilder.vertex(matrix4f, x2*width, y2*height, 0).texture(1, 1);
-        bufferBuilder.vertex(matrix4f, x2*width, y1*height, 0).texture(1, 0);
+        bufferBuilder.vertex(matrix4f, uv.x*width, uv.y*height, 0).texture(0, 0);
+        bufferBuilder.vertex(matrix4f, uv.x*width, uv.w*height, 0).texture(0, 1);
+        bufferBuilder.vertex(matrix4f, uv.z*width, uv.w*height, 0).texture(1, 1);
+        bufferBuilder.vertex(matrix4f, uv.z*width, uv.y*height, 0).texture(1, 0);
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         RenderSystem.disableBlend();
 
@@ -115,9 +90,10 @@ public class VideoParameters {
         private @Nullable Float opacity = null;
         private @Nullable Boolean looping = null;
         private @Nullable Float speed = null;
+        private @Nullable Alignment alignment = null;
 
         public VideoParameters build() {
-            return new VideoParameters(priority, volume, opacity, looping, speed);
+            return new VideoParameters(priority, volume, opacity, looping, speed, alignment);
         }
 
         public @Nullable String getSource() {
@@ -165,6 +141,10 @@ public class VideoParameters {
             speed = value;
         }
 
+        public void setAlignment(@NotNull Alignment value) {
+            alignment = value;
+        }
+
         public void updateParameters(VideoParameters videoParameters) {
             if (volume != null) {
                 videoParameters.volume = volume;
@@ -177,6 +157,9 @@ public class VideoParameters {
             }
             if (speed != null) {
                 videoParameters.speed = speed;
+            }
+            if (alignment != null) {
+                videoParameters.alignment = alignment;
             }
         }
     }

@@ -68,20 +68,23 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
             }
         }
 
-        int removed = 0;
-        for (File file : Objects.requireNonNull(cache.toFile().listFiles())) {
-            if (!zipped.contains(file.toPath())) {
-                try {
-                    Files.delete(file.toPath());
-                    removed++;
-                } catch (IOException e) {
-                    VideoScreenClient.LOGGER.info("failed to delete old zipped video {}:\n{} {}", file, e, e.getStackTrace());
+        File[] files = cache.toFile().listFiles();
+        if (files != null) {
+            int removed = 0;
+            for (File file : files) {
+                if (!zipped.contains(file.toPath())) {
+                    try {
+                        Files.delete(file.toPath());
+                        removed++;
+                    } catch (IOException e) {
+                        VideoScreenClient.LOGGER.info("failed to delete old zipped video {}:\n{} {}", file, e, e.getStackTrace());
+                    }
                 }
             }
-        }
 
-        if (removed > 0) {
-            VideoScreenClient.LOGGER.info("removed {} unused video(s) from the cache", removed);
+            if (removed > 0) {
+                VideoScreenClient.LOGGER.info("removed {} unused video(s) from the cache", removed);
+            }
         }
     }
 

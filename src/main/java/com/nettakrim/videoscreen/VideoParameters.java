@@ -57,6 +57,10 @@ public class VideoParameters {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
+    public boolean isFinished() {
+        return videoPlayer.isEnded();
+    }
+
     public void applySettings() {
         videoPlayer.setVolume(volume);
     }

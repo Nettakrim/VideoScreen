@@ -23,5 +23,6 @@ public class GameRendererMixin {
         for (VideoParameters videoParameters : VideoScreenClient.videos) {
             videoParameters.render(context, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
         }
+        VideoScreenClient.videos.removeIf(VideoParameters::isFinished);
     }
 }

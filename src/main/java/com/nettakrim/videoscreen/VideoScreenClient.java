@@ -41,7 +41,7 @@ public class VideoScreenClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register((minecraftClient -> {
 			for (VideoParameters videoParameters : videos) {
-				videoParameters.tick();
+				videoParameters.tick(minecraftClient);
 			}
 		}));
 	}

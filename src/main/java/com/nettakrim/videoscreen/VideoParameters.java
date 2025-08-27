@@ -2,6 +2,7 @@ package com.nettakrim.videoscreen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 //? if >=1.21.3 {
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
 //?}
 import net.minecraft.client.gui.DrawContext;
@@ -37,9 +38,18 @@ public class VideoParameters {
         this.category = category == null ? SoundCategory.MASTER : category.getSoundCategory();
     }
 
-    public void tick() {
-        // TODO: adapt based on sound category
-        videoPlayer.setVolume(volume);
+    public void tick(MinecraftClient minecraftClient) {
+        float volume = this.volume;
+
+        if (category != null) {
+            volume *= minecraftClient.options.getSoundVolume(SoundCategory.MASTER);
+
+            if (category != SoundCategory.MASTER) {
+                volume *= minecraftClient.options.getSoundVolume(category);
+            }
+        }
+
+        videoPlayer.setVolume((int)volume);
     }
 
     public void render(DrawContext context, int width, int height) {

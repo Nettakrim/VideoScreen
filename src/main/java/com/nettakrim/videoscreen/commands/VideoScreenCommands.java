@@ -184,6 +184,33 @@ public class VideoScreenCommands {
                                             settingsNode)
                                     )
                     )
+                    .then(
+                            ClientCommandManager.literal("fade")
+                                    .then(
+                                            ClientCommandManager.literal("in")
+                                                    .then(
+                                                            ClientCommandManager.argument("duration", FloatArgumentType.floatArg(0))
+                                                                    .then(addParameter(
+                                                                            ClientCommandManager.argument("fade_audio", BoolArgumentType.bool())
+                                                                                    .suggests(boolSuggestions),
+                                                                            context -> getBuilder(context).setFade(true, new Fade(FloatArgumentType.getFloat(context, "duration"), BoolArgumentType.getBool(context, "fade_audio"))),
+                                                                            settingsNode)
+                                                                    )
+                                                    )
+                                    )
+                                    .then(
+                                            ClientCommandManager.literal("out")
+                                                    .then(
+                                                            ClientCommandManager.argument("duration", FloatArgumentType.floatArg(0))
+                                                                    .then(addParameter(
+                                                                            ClientCommandManager.argument("fade_audio", BoolArgumentType.bool())
+                                                                                    .suggests(boolSuggestions),
+                                                                            context -> getBuilder(context).setFade(false, new Fade(FloatArgumentType.getFloat(context, "duration"), BoolArgumentType.getBool(context, "fade_audio"))),
+                                                                            settingsNode)
+                                                                    )
+                                                    )
+                                    )
+                    )
             );
         });
     }
@@ -235,7 +262,7 @@ public class VideoScreenCommands {
             builder.suggest(0);
         } else {
             for (VideoParameters videoParameters : VideoScreenClient.videos) {
-                builder.suggest(videoParameters.priority);
+                builder.suggest(videoParameters.getPriority());
             }
         }
         return builder.buildFuture();

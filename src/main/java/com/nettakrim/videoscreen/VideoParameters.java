@@ -19,14 +19,16 @@ import java.io.File;
 
 public class VideoParameters {
     public VideoPlayer videoPlayer;
-    public final int priority;
+    private final int priority;
 
-    protected int volume;
-    protected float opacity;
-    protected boolean looping;
-    protected float speed;
-    protected @NotNull Alignment alignment;
-    protected @Nullable SoundCategory category;
+    private int volume;
+    private float opacity;
+    private boolean looping;
+    private float speed;
+    private @NotNull Alignment alignment;
+    private @Nullable SoundCategory category;
+    private Fade fadeIn;
+    private Fade fadeOut;
 
     public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment, @Nullable Category category) {
         this.priority = priority;
@@ -85,6 +87,10 @@ public class VideoParameters {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
+    public int getPriority() {
+        return priority;
+    }
+
     public boolean isFinished() {
         return videoPlayer.isEnded() && !looping;
     }
@@ -109,6 +115,8 @@ public class VideoParameters {
         private @Nullable Float speed = null;
         private @Nullable Alignment alignment = null;
         private @Nullable Category category = null;
+        private @Nullable Fade fadeIn;
+        private @Nullable Fade fadeOut;
 
         public VideoParameters build() {
             return new VideoParameters(priority, volume, opacity, looping, speed, alignment, category);
@@ -167,6 +175,14 @@ public class VideoParameters {
             category = value;
         }
 
+        public void setFade(boolean in, @NotNull Fade value) {
+            if (in) {
+                fadeIn = value;
+            } else {
+                fadeOut = value;
+            }
+        }
+
         public void updateParameters(VideoParameters videoParameters) {
             if (volume != null) {
                 videoParameters.volume = volume;
@@ -185,6 +201,12 @@ public class VideoParameters {
             }
             if (category != null) {
                 videoParameters.category = category.getSoundCategory();
+            }
+            if (fadeIn != null) {
+                videoParameters.fadeIn = fadeIn;
+            }
+            if (fadeOut != null) {
+                videoParameters.fadeOut = fadeOut;
             }
         }
     }

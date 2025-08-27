@@ -60,9 +60,9 @@ public class VideoScreenClient implements ClientModInitializer {
 			mid = (low + high) / 2;
 			VideoParameters parameters = videos.get(mid);
 
-			if (parameters.priority == priority) {
+			if (parameters.getPriority() == priority) {
 				return new SearchResult(mid, true);
-			} else if (parameters.priority > priority) {
+			} else if (parameters.getPriority() > priority) {
 				high = mid - 1;
 			} else {
 				low = mid + 1;

@@ -27,10 +27,10 @@ public class VideoParameters {
     private float speed;
     private @NotNull Alignment alignment;
     private @Nullable SoundCategory category;
-    private Fade fadeIn;
-    private Fade fadeOut;
+    private @Nullable Fade fadeIn;
+    private @Nullable Fade fadeOut;
 
-    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment, @Nullable Category category) {
+    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment, @Nullable Category category, @Nullable Fade fadeIn, @Nullable Fade fadeOut) {
         this.priority = priority;
         this.volume = volume == null ? 100 : volume;
         this.opacity = opacity == null ? 1f : opacity;
@@ -38,6 +38,8 @@ public class VideoParameters {
         this.speed = speed == null ? 1f : speed;
         this.alignment = alignment == null ? new Alignment(0.5f, 0.5f, 1f, false) : alignment;
         this.category = category == null ? SoundCategory.MASTER : category.getSoundCategory();
+        this.fadeIn = fadeIn;
+        this.fadeOut = fadeOut;
     }
 
     public void tick(MinecraftClient minecraftClient) {
@@ -50,6 +52,8 @@ public class VideoParameters {
                 volume *= minecraftClient.options.getSoundVolume(category);
             }
         }
+
+        volume *= getFade(false);
 
         videoPlayer.setVolume((int)volume);
     }
@@ -72,7 +76,7 @@ public class VideoParameters {
         RenderSystem.setShaderTexture(0, texture);
 
         RenderSystem.enableBlend();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, opacity);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, opacity * getFade(true));
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
@@ -104,6 +108,43 @@ public class VideoParameters {
         videoPlayer.stop();
     }
 
+    private float getFade(boolean isOpacity) {
+        long time = getCurrentTime();
+
+        float currentFade = 1f;
+        if (fadeIn != null && (isOpacity || fadeIn.fadeAudio())) {
+            float fade = (time * 0.001f) / fadeIn.duration();
+            if (fade < currentFade) {
+                currentFade = fade;
+            }
+        }
+        if (fadeOut != null && (isOpacity || fadeOut.fadeAudio())) {
+            float fade = ((videoPlayer.getDuration() - time) * 0.001f) / fadeOut.duration();
+            if (fade < currentFade) {
+                currentFade = fade;
+            }
+        }
+
+        return currentFade;
+    }
+
+    //https://stackoverflow.com/questions/11236432/how-do-i-get-libvlc-media-player-get-time-to-return-a-more-accurate-result
+    private long lastPlayTime = 0;
+    private long lastPlayTimeGlobal = 0;
+
+    public long getCurrentTime(){
+        long currentTime = videoPlayer.getTime();
+
+        if (lastPlayTime == currentTime && lastPlayTime != 0){
+            currentTime += System.currentTimeMillis() - lastPlayTimeGlobal;
+        } else {
+            lastPlayTime = currentTime;
+            lastPlayTimeGlobal = System.currentTimeMillis();
+        }
+
+        return currentTime;
+    }
+
     public static class Builder {
         private int priority = 0;
         private @Nullable String fileSource = null;
@@ -119,7 +160,7 @@ public class VideoParameters {
         private @Nullable Fade fadeOut;
 
         public VideoParameters build() {
-            return new VideoParameters(priority, volume, opacity, looping, speed, alignment, category);
+            return new VideoParameters(priority, volume, opacity, looping, speed, alignment, category, fadeIn, fadeOut);
         }
 
         public @Nullable String getSource() {

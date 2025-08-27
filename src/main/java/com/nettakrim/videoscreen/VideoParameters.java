@@ -30,6 +30,7 @@ public class VideoParameters {
     private @Nullable SoundCategory category;
     private @Nullable Fade fadeIn;
     private @Nullable Fade fadeOut;
+    private long fadeOutAt = 0;
 
     public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment, @Nullable Category category, @Nullable Fade fadeIn, @Nullable Fade fadeOut) {
         this.priority = priority;
@@ -108,8 +109,12 @@ public class VideoParameters {
         videoPlayer.setSpeed(speed);
     }
 
-    public void stop() {
-        videoPlayer.stop();
+    public void stop(boolean fade) {
+        if (fade && fadeOut != null) {
+            fadeOutAt = lastPlayTime + (long) (fadeOut.duration() * 1000f);
+        } else {
+            videoPlayer.stop();
+        }
     }
 
     private float getFade(boolean isOpacity) {
@@ -123,9 +128,16 @@ public class VideoParameters {
             }
         }
         if (fadeOut != null && (isOpacity || fadeOut.fadeAudio())) {
-            float fade = ((videoPlayer.getDuration() - time) * 0.001f) / fadeOut.duration();
+            long at = videoPlayer.getDuration();
+            if (fadeOutAt != 0 && fadeOutAt < at) {
+                at = fadeOutAt;
+            }
+            float fade = ((at - time) * 0.001f) / fadeOut.duration();
             if (fade < currentFade) {
                 currentFade = fade;
+                if (fade < 0 && fadeOutAt != 0) {
+                    videoPlayer.stop();
+                }
             }
         }
 

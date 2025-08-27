@@ -24,11 +24,15 @@ public class VideoScreenCommands {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(
                     ClientCommandManager.literal("videoplayer:stop")
-                            .executes(this::stopMainVideo)
+                            .executes(this::stopAll)
                             .then(
                                     ClientCommandManager.argument("priority", IntegerArgumentType.integer())
                                             .suggests(prioritySuggestions)
-                                            .executes(this::stopVideo)
+                                            .executes(context -> stopVideo(context, false))
+                                            .then(
+                                                    ClientCommandManager.literal("fade")
+                                                            .executes(context -> stopVideo(context, true))
+                                            )
                             )
             );
 
@@ -229,12 +233,12 @@ public class VideoScreenCommands {
         return ((ClientCommandSourceInterface)context.getSource()).videoscreen$getParameters();
     }
 
-    public int stopMainVideo(CommandContext<FabricClientCommandSource> context) {
-        return VideoScreenClient.clearVideo(0) ? 1 : 0;
+    public int stopAll(CommandContext<FabricClientCommandSource> context) {
+        return VideoScreenClient.clearAll();
     }
 
-    public int stopVideo(CommandContext<FabricClientCommandSource> context) {
-        return VideoScreenClient.clearVideo(IntegerArgumentType.getInteger(context, "priority")) ? 1 : 0;
+    public int stopVideo(CommandContext<FabricClientCommandSource> context, boolean fade) {
+        return VideoScreenClient.clearVideo(IntegerArgumentType.getInteger(context, "priority"), fade) ? 1 : 0;
     }
 
     public int updateVideo(CommandContext<FabricClientCommandSource> context) {

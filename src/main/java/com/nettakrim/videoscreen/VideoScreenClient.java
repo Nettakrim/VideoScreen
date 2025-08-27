@@ -100,14 +100,14 @@ public class VideoScreenClient implements ClientModInitializer {
 
 		if (videoPlayer == null) {
 			if (searchResult.found) {
-				videos.remove(searchResult.index).stop();
+				videos.remove(searchResult.index).stop(false);
 			}
 			say("invalid_source");
 			return 0;
 		}
 
 		if (searchResult.found) {
-			videos.remove(searchResult.index).stop();
+			videos.remove(searchResult.index).stop(false);
 		}
 
 		VideoParameters videoParameters = builder.build();
@@ -132,10 +132,19 @@ public class VideoScreenClient implements ClientModInitializer {
 		return videoPlayer;
 	}
 
-	public static boolean clearVideo(int priority) {
+	public static int clearAll() {
+		for (VideoParameters videoParameters : videos) {
+			videoParameters.stop(false);
+		}
+		int count = videos.size();
+		videos.clear();
+		return count;
+	}
+
+	public static boolean clearVideo(int priority, boolean fade) {
 		SearchResult searchResult = getVideo(priority);
 		if (searchResult.found) {
-			videos.remove(searchResult.index).stop();
+			videos.get(searchResult.index).stop(fade);
 			return true;
 		}
 		return false;

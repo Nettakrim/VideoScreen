@@ -8,6 +8,7 @@ import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -53,7 +54,10 @@ public class VideoParameters {
             }
         }
 
-        volume *= getFade(false);
+        float fade = getFade(false);
+        if (fade != 1f) {
+            volume *= MathHelper.sqrt(fade);
+        }
 
         videoPlayer.setVolume((int)volume);
     }

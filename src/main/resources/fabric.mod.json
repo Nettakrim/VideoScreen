@@ -26,7 +26,8 @@
 		"fabricloader": ">=0.16.0",
 		"minecraft": "${minecraft}",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"watermedia": ">=2.1.0"
 	},
 	"suggests": {
 		"another-mod": "*"

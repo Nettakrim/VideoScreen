@@ -175,6 +175,15 @@ public class VideoScreenCommands {
                                                     )
                                     )
                     )
+                    .then(
+                            ClientCommandManager.literal("category")
+                                    .then(addParameter(
+                                            ClientCommandManager.argument("category", new Category.ArgumentType())
+                                                    .suggests(Category.suggestions),
+                                            context -> getBuilder(context).setCategory(context.getArgument("category", Category.class)),
+                                            settingsNode)
+                                    )
+                    )
             );
         });
     }

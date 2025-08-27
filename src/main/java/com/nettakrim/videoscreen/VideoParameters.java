@@ -6,6 +6,7 @@ import net.minecraft.client.gl.ShaderProgramKeys;
 //?}
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
+import net.minecraft.sound.SoundCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -24,14 +25,21 @@ public class VideoParameters {
     protected boolean looping;
     protected float speed;
     protected @NotNull Alignment alignment;
+    protected @Nullable SoundCategory category;
 
-    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment) {
+    public VideoParameters(int priority, @Nullable Integer volume, @Nullable Float opacity, @Nullable Boolean looping, @Nullable Float speed, @Nullable Alignment alignment, @Nullable Category category) {
         this.priority = priority;
         this.volume = volume == null ? 100 : volume;
         this.opacity = opacity == null ? 1f : opacity;
         this.looping = looping != null && looping;
         this.speed = speed == null ? 1f : speed;
         this.alignment = alignment == null ? new Alignment(0.5f, 0.5f, 1f, false) : alignment;
+        this.category = category == null ? SoundCategory.MASTER : category.getSoundCategory();
+    }
+
+    public void tick() {
+        // TODO: adapt based on sound category
+        videoPlayer.setVolume(volume);
     }
 
     public void render(DrawContext context, int width, int height) {
@@ -72,7 +80,6 @@ public class VideoParameters {
     }
 
     public void applySettings() {
-        videoPlayer.setVolume(volume);
         videoPlayer.setRepeatMode(looping);
         videoPlayer.setSpeed(speed);
     }
@@ -91,9 +98,10 @@ public class VideoParameters {
         private @Nullable Boolean looping = null;
         private @Nullable Float speed = null;
         private @Nullable Alignment alignment = null;
+        private @Nullable Category category = null;
 
         public VideoParameters build() {
-            return new VideoParameters(priority, volume, opacity, looping, speed, alignment);
+            return new VideoParameters(priority, volume, opacity, looping, speed, alignment, category);
         }
 
         public @Nullable String getSource() {
@@ -145,6 +153,10 @@ public class VideoParameters {
             alignment = value;
         }
 
+        public void setCategory(@NotNull Category value) {
+            category = value;
+        }
+
         public void updateParameters(VideoParameters videoParameters) {
             if (volume != null) {
                 videoParameters.volume = volume;
@@ -160,6 +172,9 @@ public class VideoParameters {
             }
             if (alignment != null) {
                 videoParameters.alignment = alignment;
+            }
+            if (category != null) {
+                videoParameters.category = category.getSoundCategory();
             }
         }
     }

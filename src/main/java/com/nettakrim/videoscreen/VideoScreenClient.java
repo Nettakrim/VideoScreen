@@ -3,6 +3,7 @@ package com.nettakrim.videoscreen;
 import com.nettakrim.videoscreen.commands.VideoScreenCommands;
 import net.fabricmc.api.ClientModInitializer;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
@@ -37,6 +38,12 @@ public class VideoScreenClient implements ClientModInitializer {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new VideoScreenReloader());
 
 		new VideoScreenCommands().register();
+
+		ClientTickEvents.END_CLIENT_TICK.register((minecraftClient -> {
+			for (VideoParameters videoParameters : videos) {
+				videoParameters.tick();
+			}
+		}));
 	}
 
 	private static SearchResult getVideo(int priority) {

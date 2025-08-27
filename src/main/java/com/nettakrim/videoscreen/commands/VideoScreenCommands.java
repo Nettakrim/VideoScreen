@@ -150,11 +150,11 @@ public class VideoScreenCommands {
                     .then(
                             ClientCommandManager.literal("alignment")
                                     .then(
-                                            ClientCommandManager.argument("anchor_x", FloatArgumentType.floatArg(0, 1))
-                                                    .suggests(float05Suggestions)
+                                            ClientCommandManager.argument("anchor_x", new AlignmentArgumentType())
+                                                    .suggests(AlignmentArgumentType.getAlignmentSuggestions("middle", "left", "right"))
                                                     .then(
-                                                            ClientCommandManager.argument("anchor_y", FloatArgumentType.floatArg(0, 1))
-                                                                    .suggests(float05Suggestions)
+                                                            ClientCommandManager.argument("anchor_y", new AlignmentArgumentType())
+                                                                    .suggests(AlignmentArgumentType.getAlignmentSuggestions("center", "down", "up"))
                                                                     .then(
                                                                             ClientCommandManager.argument("scale", FloatArgumentType.floatArg())
                                                                                     .suggests(float1Suggestions)
@@ -233,8 +233,6 @@ public class VideoScreenCommands {
     };
 
     private static final SuggestionProvider<FabricClientCommandSource> float1Suggestions = (context, builder) -> builder.suggest("1.0").buildFuture();
-
-    private static final SuggestionProvider<FabricClientCommandSource> float05Suggestions = (context, builder) -> builder.suggest("0.5").buildFuture();
 
     private static final SuggestionProvider<FabricClientCommandSource> boolSuggestions = (context, builder) -> builder.suggest("true").suggest("false").buildFuture();
 }

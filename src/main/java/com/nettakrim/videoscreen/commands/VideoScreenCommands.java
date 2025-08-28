@@ -155,7 +155,7 @@ public class VideoScreenCommands {
                             ClientCommandManager.literal("alignment")
                                     .then(
                                             ClientCommandManager.argument("anchor_x", new AlignmentArgumentType())
-                                                    .suggests(AlignmentArgumentType.getAlignmentSuggestions("middle", "left", "right"))
+                                                    .suggests(AlignmentArgumentType.getAlignmentSuggestions("center", "left", "right"))
                                                     .then(
                                                             ClientCommandManager.argument("anchor_y", new AlignmentArgumentType())
                                                                     .suggests(AlignmentArgumentType.getAlignmentSuggestions("center", "down", "up"))

@@ -23,7 +23,7 @@ public class VideoScreenCommands {
     public void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(
-                    ClientCommandManager.literal("videoplayer:stop")
+                    ClientCommandManager.literal("videoscreen:stop")
                             .executes(this::stopAll)
                             .then(
                                     ClientCommandManager.argument("priority", IntegerArgumentType.integer())
@@ -37,7 +37,7 @@ public class VideoScreenCommands {
             );
 
             dispatcher.register(
-                    ClientCommandManager.literal("videoplayer:ui")
+                    ClientCommandManager.literal("videoscreen:ui")
                             .then(
                                     ClientCommandManager.literal("off")
                                             .executes(this::disableUI)
@@ -62,7 +62,7 @@ public class VideoScreenCommands {
             );
 
             LiteralCommandNode<FabricClientCommandSource> settingsNode = dispatcher.register(
-                    ClientCommandManager.literal("videoplayer:settings")
+                    ClientCommandManager.literal("videoscreen:settings")
             );
 
             LiteralArgumentBuilder<FabricClientCommandSource> urlSource = ClientCommandManager.literal("url")
@@ -93,13 +93,13 @@ public class VideoScreenCommands {
                     );
 
             dispatcher.register(
-                    ClientCommandManager.literal("videoplayer:play")
+                    ClientCommandManager.literal("videoscreen:play")
                             .then(urlSource)
                             .then(fileSource)
                             .then(resourceSource)
             );
 
-            dispatcher.register(ClientCommandManager.literal("videoplayer:settings")
+            dispatcher.register(ClientCommandManager.literal("videoscreen:settings")
                     .then(
                             ClientCommandManager.literal("fallback")
                                     .then(urlSource)

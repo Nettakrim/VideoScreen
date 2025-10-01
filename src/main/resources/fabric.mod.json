@@ -27,7 +27,7 @@
 		"minecraft": "${minecraft}",
 		"java": ">=21",
 		"fabric-api": "*",
-		"watermedia": ">=2.1.0"
+		"watermedia": ">=2.1.35"
 	},
 	"suggests": {
 		"another-mod": "*"

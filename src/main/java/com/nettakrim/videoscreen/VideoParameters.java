@@ -70,7 +70,8 @@ public class VideoParameters {
 
         Vector4f uv = alignment.GetUV(videoPlayer.width() / (float) videoPlayer.height(), width / (float) height);
 
-        int texture = videoPlayer.preRender();
+        // stops some visual bugs
+        //context.draw();
 
         //? if <1.21.3 {
         /*assert GameRenderer.getPositionTexProgram() != null;
@@ -78,7 +79,7 @@ public class VideoParameters {
         *///?} else
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
 
-        RenderSystem.setShaderTexture(0, texture);
+        RenderSystem.setShaderTexture(0, videoPlayer.texture());
 
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, opacity * getFade(true));

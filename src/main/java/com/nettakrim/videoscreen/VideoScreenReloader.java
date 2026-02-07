@@ -23,17 +23,22 @@ public class VideoScreenReloader extends SinglePreparationResourceReloader<Map<I
 
     @Override
     protected Map<Identifier, Resource> prepare(ResourceManager manager, Profiler profiler) {
-        ResourceFinder resourceFinder = new ResourceFinder(resourceLocation, ".mp4");
-
         Map<Identifier, Resource> resources = new HashMap<>();
+        find(manager, resources, ".mp4");
+        find(manager, resources, ".mov");
+        find(manager, resources, ".avi");
+        find(manager, resources, ".mkv");
+        return resources;
+    }
+
+    private void find(ResourceManager manager, Map<Identifier, Resource> resources, String type) {
+        ResourceFinder resourceFinder = new ResourceFinder(resourceLocation, type);
 
         for (Map.Entry<Identifier, List<Resource>> identifierResourceEntry : resourceFinder.findAllResources(manager).entrySet()) {
             for (Resource resource : identifierResourceEntry.getValue()) {
                 resources.put(identifierResourceEntry.getKey(), resource);
             }
         }
-
-        return resources;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

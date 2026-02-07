@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
+import org.watermedia.api.network.NetworkAPI;
 import org.watermedia.api.player.videolan.VideoPlayer;
 
 import java.io.File;
@@ -188,10 +189,26 @@ public class VideoParameters {
         }
 
         public void addFileSource(@Nullable String value) {
-            if (value == null || fileSource != null || !new File(value).exists()) {
+            if (value == null || fileSource != null || !fileExists(value)) {
                 return;
             }
             fileSource = value;
+        }
+
+        private boolean fileExists(@NotNull String value) {
+            if (new File(value).exists()) {
+                return true;
+            }
+
+            if (value.startsWith("water://")) {
+                String uri = NetworkAPI.patch(NetworkAPI.parseURI(value)).uri.toString();
+                if (uri.startsWith("file:///")) {
+                    uri = uri.substring(8);
+                }
+                return new File(uri).exists();
+            }
+
+            return false;
         }
 
         public void addUrlSource(@Nullable String value) {

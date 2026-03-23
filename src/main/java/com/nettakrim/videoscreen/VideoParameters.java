@@ -72,7 +72,7 @@ public class VideoParameters {
         Vector4f uv = alignment.GetUV(videoPlayer.width() / (float) videoPlayer.height(), width / (float) height);
 
         // stops some visual bugs
-        //context.draw();
+        context.draw();
 
         //? if <1.21.3 {
         /*assert GameRenderer.getPositionTexProgram() != null;
@@ -94,6 +94,9 @@ public class VideoParameters {
         bufferBuilder.vertex(matrix4f, uv.z*width, uv.y*height, 0).texture(1, 0);
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         RenderSystem.disableBlend();
+
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }

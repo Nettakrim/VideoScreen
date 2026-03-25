@@ -14,13 +14,12 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
-import org.watermedia.api.network.NetworkAPI;
-import org.watermedia.api.player.videolan.VideoPlayer;
+import org.watermedia.api.media.players.MediaPlayer;
 
 import java.io.File;
 
 public class VideoParameters {
-    public VideoPlayer videoPlayer;
+    public MediaPlayer videoPlayer;
     private final int priority;
 
     private int volume;
@@ -61,13 +60,15 @@ public class VideoParameters {
             volume *= MathHelper.sqrt(fade);
         }
 
-        videoPlayer.setVolume((int)volume);
+        videoPlayer.volume((int)volume);
     }
 
     public void render(DrawContext context, int width, int height) {
-        if (!videoPlayer.isPlaying() || opacity == 0) {
+        if (!videoPlayer.playing() || opacity == 0) {
             return;
         }
+
+        //Identifier tex = VideoScreenClient.textureId(videoPlayer);
 
         Vector4f uv = alignment.GetUV(videoPlayer.width() / (float) videoPlayer.height(), width / (float) height);
 
@@ -106,12 +107,12 @@ public class VideoParameters {
     }
 
     public boolean isFinished() {
-        return videoPlayer.isEnded() && !looping;
+        return videoPlayer.ended() && !looping;
     }
 
     public void applySettings() {
-        videoPlayer.setRepeatMode(looping);
-        videoPlayer.setSpeed(speed);
+        videoPlayer.repeat(looping);
+        videoPlayer.speed(speed);
     }
 
     public void stop(boolean fade) {
@@ -133,7 +134,7 @@ public class VideoParameters {
             }
         }
         if (fadeOut != null && (isOpacity || fadeOut.fadeAudio())) {
-            long at = videoPlayer.getDuration();
+            long at = videoPlayer.duration();
             if (fadeOutAt != 0 && fadeOutAt < at) {
                 at = fadeOutAt;
             }
@@ -154,7 +155,7 @@ public class VideoParameters {
     private long lastPlayTimeGlobal = 0;
 
     public long getCurrentTime(){
-        long currentTime = videoPlayer.getTime();
+        long currentTime = videoPlayer.time();
 
         if (lastPlayTime == currentTime && lastPlayTime != 0){
             currentTime += System.currentTimeMillis() - lastPlayTimeGlobal;
@@ -203,13 +204,14 @@ public class VideoParameters {
                 return true;
             }
 
-            if (value.startsWith("water://")) {
-                String uri = NetworkAPI.patch(NetworkAPI.parseURI(value)).uri.toString();
-                if (uri.startsWith("file:///")) {
-                    uri = uri.substring(8);
-                }
-                return new File(uri).exists();
-            }
+            // TODO: fix this
+            //if (value.startsWith("water://")) {
+            //    String uri = NetworkAPI.patch(NetworkAPI.parseURI(value)).uri.toString();
+            //    if (uri.startsWith("file:///")) {
+            //        uri = uri.substring(8);
+            //    }
+            //    return new File(uri).exists();
+            //}
 
             return false;
         }

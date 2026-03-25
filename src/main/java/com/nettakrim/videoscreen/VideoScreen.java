@@ -1,11 +1,14 @@
 package com.nettakrim.videoscreen;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
+import org.watermedia.api.media.engines.ALEngine;
+import org.watermedia.api.media.engines.GLEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,10 +81,10 @@ public class VideoScreen extends Screen {
             return;
         }
 
-        boolean paused = !VideoScreenClient.videos.getLast().videoPlayer.isPaused();
+        boolean paused = !VideoScreenClient.videos.getLast().videoPlayer.paused();
 
         for (VideoParameters videoParameters : VideoScreenClient.videos) {
-            videoParameters.videoPlayer.setPauseMode(paused);
+            videoParameters.videoPlayer.pause(paused);
         }
     }
 

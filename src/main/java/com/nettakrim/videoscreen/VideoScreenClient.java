@@ -1,6 +1,9 @@
 package com.nettakrim.videoscreen;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.nettakrim.videoscreen.commands.VideoScreenCommands;
+import it.unimi.dsi.fastutil.Function;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,10 +19,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.watermedia.api.network.NetworkAPI;
-import org.watermedia.api.player.videolan.VideoPlayer;
+import org.watermedia.api.media.MRL;
+import org.watermedia.api.media.MediaAPI;
+import org.watermedia.api.media.engines.ALEngine;
+import org.watermedia.api.media.engines.GLEngine;
+import org.watermedia.api.media.players.MediaPlayer;
 
-import java.net.URI;
 import java.util.*;
 
 public class VideoScreenClient implements ClientModInitializer {
@@ -32,6 +37,30 @@ public class VideoScreenClient implements ClientModInitializer {
 	public static final HashMap<Identifier, String> localVideos = new HashMap<>();
 
 	public static final List<VideoParameters> videos = new ArrayList<>();
+
+	private static final Int2ObjectOpenHashMap<Identifier> TEXTURES = new Int2ObjectOpenHashMap<>();
+
+	// ENGINE BUILDERS - Configured once, built per-player
+	private static final GLEngine.Builder GL_BUILDER = new GLEngine.Builder()
+			.setGenTexture(GlStateManager::_genTexture)
+			.setBindTexture((target, tex) -> GlStateManager._bindTexture(tex))
+			.setTexParameter(GlStateManager::_texParameter)
+			.setPixelStore(GlStateManager::_pixelStore)
+			.setDelTexture(GlStateManager::_deleteTexture);
+
+	private static final ALEngine.Builder AL_BUILDER = new ALEngine.Builder();
+
+	public static Identifier textureId(MediaPlayer mediaPlayer) {
+		int texture = mediaPlayer.texture();
+		if (texture != -1) {
+			return TEXTURES.computeIfAbsent(texture, (Function<Integer, Identifier>) integer -> {
+				var id = Identifier.of("videoscreen","dynamic_texture_" + texture);
+				MinecraftClient.getInstance().getTextureManager().registerTexture(id, new TextureWrapper(texture));
+				return id;
+			});
+		}
+		return null;
+	}
 
 	@Override
 	public void onInitializeClient() {
@@ -83,8 +112,8 @@ public class VideoScreenClient implements ClientModInitializer {
 		VideoParameters videoParameters = videos.get(result.index);
 
 		// if current video is currently not playing, accept fallbacks as new sources
-		if (!videoParameters.videoPlayer.isPlaying()) {
-			VideoPlayer videoPlayer = createVideoPlayer(builder.getSource());
+		if (!videoParameters.videoPlayer.playing()) {
+			MediaPlayer videoPlayer = createVideoPlayer(builder.getSource());
 			videoParameters.videoPlayer.stop();
 			videoParameters.videoPlayer = videoPlayer;
 		}
@@ -95,7 +124,7 @@ public class VideoScreenClient implements ClientModInitializer {
 	}
 
 	public static int play(@NotNull VideoParameters.Builder builder) {
-		VideoPlayer videoPlayer = createVideoPlayer(builder.getSource());
+		MediaPlayer videoPlayer = createVideoPlayer(builder.getSource());
 		SearchResult searchResult = getVideo(builder.getPriority());
 
 		if (videoPlayer == null) {
@@ -117,19 +146,20 @@ public class VideoScreenClient implements ClientModInitializer {
 		return 1;
 	}
 
-	private static @Nullable VideoPlayer createVideoPlayer(@Nullable String source) {
+	private static @Nullable MediaPlayer createVideoPlayer(@Nullable String source) {
 		if (source == null) {
 			return null;
 		}
 
-		URI uri = NetworkAPI.patch(NetworkAPI.parseURI(source.replace('\\', '/'))).uri;
-		if (uri.getScheme() == null) {
+		VideoScreenClient.LOGGER.info(source);
+		MRL mrl = MediaAPI.getMRL(source);
+		if (mrl.ready()) {
+			MediaPlayer mediaPlayer = mrl.createPlayer(Thread.currentThread(), MinecraftClient.getInstance(), GL_BUILDER.build(), AL_BUILDER.build(), true, true);
+			mediaPlayer.start();
+			return mediaPlayer;
+		} else {
 			return null;
 		}
-
-		VideoPlayer videoPlayer = new VideoPlayer(MinecraftClient.getInstance());
-		videoPlayer.start(uri);
-		return videoPlayer;
 	}
 
 	public static int clearAll() {
